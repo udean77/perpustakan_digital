@@ -44,10 +44,17 @@ class PaymentController extends Controller
      */
     public function finish(Request $request)
     {
-        $orderId = $request->order_id;
-        $orderIdParts = explode('-', $orderId);
-        $orderId = $orderIdParts[1]; // Get the actual order ID
+        $midtransOrderId = $request->query('order_id');
+        if (!$midtransOrderId) {
+            return redirect()->route('user.transaction.index')->with('error', 'ID Pesanan tidak ditemukan.');
+        }
 
+        $orderIdParts = explode('-', $midtransOrderId);
+        if (count($orderIdParts) < 2) {
+            return redirect()->route('user.transaction.index')->with('error', 'Format ID Pesanan tidak valid.');
+        }
+        
+        $orderId = $orderIdParts[1]; // Get the actual order ID
         $order = Order::find($orderId);
         
         if (!$order) {
@@ -58,12 +65,11 @@ class PaymentController extends Controller
         try {
             $paymentStatus = $this->midtransService->getPaymentStatus($orderId);
             
-            if ($paymentStatus->transaction_status === 'settlement' || 
-                $paymentStatus->transaction_status === 'capture') {
+            if (isset($paymentStatus['transaction_status']) && ($paymentStatus['transaction_status'] === 'settlement' || $paymentStatus['transaction_status'] === 'capture')) {
                 $order->update(['status' => 'selesai']);
                 return redirect()->route('user.transaction.index')
                     ->with('success', 'Pembayaran berhasil! Pesanan Anda telah selesai.');
-            } elseif ($paymentStatus->transaction_status === 'pending') {
+            } elseif (isset($paymentStatus['transaction_status']) && $paymentStatus['transaction_status'] === 'pending') {
                 return redirect()->route('user.transaction.show', $order->id)
                     ->with('info', 'Pembayaran tertunda. Mohon selesaikan pembayaran Anda.');
             } else {
@@ -82,18 +88,21 @@ class PaymentController extends Controller
      */
     public function error(Request $request)
     {
-        $orderId = $request->order_id;
-        $orderIdParts = explode('-', $orderId);
-        $orderId = $orderIdParts[1];
-
-        $order = Order::find($orderId);
-        
-        if ($order) {
-            $order->update(['status' => 'dibatalkan']);
+        $midtransOrderId = $request->query('order_id');
+        if ($midtransOrderId) {
+            $orderIdParts = explode('-', $midtransOrderId);
+            if (count($orderIdParts) >= 2) {
+                $orderId = $orderIdParts[1];
+                $order = Order::find($orderId);
+                
+                if ($order) {
+                    $order->update(['status' => 'dibatalkan']);
+                }
+            }
         }
 
         return redirect()->route('user.transaction.index')
-            ->with('error', 'Payment failed. Please try again.');
+            ->with('error', 'Pembayaran gagal atau dibatalkan. Silakan coba lagi.');
     }
 
     /**
@@ -101,18 +110,26 @@ class PaymentController extends Controller
      */
     public function pending(Request $request)
     {
-        $orderId = $request->order_id;
-        $orderIdParts = explode('-', $orderId);
-        $orderId = $orderIdParts[1];
+        $midtransOrderId = $request->query('order_id');
+        if (!$midtransOrderId) {
+            return redirect()->route('user.transaction.index')->with('info', 'Pesanan menunggu pembayaran.');
+        }
 
+        $orderIdParts = explode('-', $midtransOrderId);
+        if (count($orderIdParts) < 2) {
+            return redirect()->route('user.transaction.index')->with('error', 'Format ID Pesanan tidak valid.');
+        }
+
+        $orderId = $orderIdParts[1];
         $order = Order::find($orderId);
         
         if ($order) {
             $order->update(['status' => 'pending']);
+            return redirect()->route('user.transaction.show', $order->id)
+                ->with('info', 'Pembayaran tertunda. Mohon selesaikan pembayaran Anda.');
         }
 
-        return redirect()->route('user.transaction.show', $order->id)
-            ->with('info', 'Payment is pending. Please complete your payment.');
+        return redirect()->route('user.transaction.index')->with('info', 'Pesanan Anda menunggu pembayaran.');
     }
 
     /**

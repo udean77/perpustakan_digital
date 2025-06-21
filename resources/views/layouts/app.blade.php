@@ -20,7 +20,7 @@
 <body>
 
 <!-- Responsive navbar-->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid px-lg-5 d-flex align-items-center">
         <!-- Logo -->
         <a class="navbar-brand me-3" href="{{ route('user.homepage') }}">
