@@ -1,0 +1,267 @@
+header.topbar.navbar, .navbar-header, aside.left-sidebar {
+    background-color: #1E242B !important;
+}
+
+/* Make navbar fixed at top */
+header.topbar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 70px;
+}
+
+/* Make sidebar fixed */
+aside.left-sidebar {
+    position: fixed !important;
+    top: 70px; /* Height of navbar */
+    left: 0;
+    bottom: 0;
+    z-index: 1020;
+    width: 260px;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+/* Sidebar overlay */
+.sidebar-overlay {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1019;
+    display: none;
+    transition: all 0.3s ease;
+}
+
+.sidebar-overlay.show {
+    display: block;
+}
+
+/* Adjust page wrapper to account for fixed navbar and sidebar */
+.page-wrapper {
+    margin-left: 260px !important;
+    margin-top: 70px !important;
+    min-height: calc(100vh - 70px);
+    transition: all 0.3s ease;
+    background-color: #f4f6f9;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    aside.left-sidebar {
+        transform: translateX(-100%);
+        width: 100%;
+        max-width: 300px;
+        top: 70px;
+    }
+    
+    .page-wrapper {
+        margin-left: 0 !important;
+        margin-top: 70px !important;
+    }
+    
+    /* Show sidebar when toggled */
+    aside.left-sidebar.show-sidebar {
+        transform: translateX(0);
+    }
+}
+
+/* Ensure content doesn't overlap with fixed elements */
+.container-fluid {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+/* Smooth scrolling for sidebar */
+.scroll-sidebar {
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Custom scrollbar for sidebar */
+.scroll-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.scroll-sidebar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.scroll-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Ensure footer stays at bottom */
+.footer {
+    margin-top: auto;
+    padding: 20px 0;
+    background: #fff;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Additional styling for better visual separation */
+.page-breadcrumb {
+    background: #fff;
+    padding: 15px 0;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Ensure proper spacing for content */
+#main-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Fix for mini sidebar mode */
+body.mini-sidebar .page-wrapper {
+    margin-left: 70px !important;
+}
+
+body.mini-sidebar aside.left-sidebar {
+    width: 70px;
+}
+
+/* Ensure proper z-index stacking */
+.navbar-collapse {
+    z-index: 1031;
+}
+
+.dropdown-menu {
+    z-index: 1032;
+}
+
+/* Card styling improvements */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.375rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Table improvements */
+.table-responsive {
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+/* Button improvements */
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+
+/* Navbar improvements */
+.navbar-brand {
+    padding: 0.5rem 1rem;
+}
+
+.navbar-nav .nav-link {
+    padding: 0.5rem 1rem;
+}
+
+/* Sidebar improvements */
+.sidebar-item {
+    margin-bottom: 2px;
+}
+
+.sidebar-link {
+    padding: 12px 20px;
+    border-radius: 0;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.sidebar-link:hover {
+    background-color: rgba(255,255,255,0.1) !important;
+    transform: translateX(5px);
+}
+
+.sidebar-link.active {
+    background-color: rgba(255,255,255,0.15) !important;
+    border-left: 3px solid #007bff;
+}
+
+.sidebar-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #007bff;
+}
+
+/* Loading improvements */
+.preloader {
+    z-index: 9999;
+}
+
+/* Ensure proper body styling */
+body {
+    overflow-x: hidden;
+    background-color: #f4f6f9;
+}
+
+/* Fix for DataTables */
+.dataTables_wrapper {
+    padding: 0;
+}
+
+/* Responsive table improvements */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Animation improvements */
+.sidebar-link, .btn, .card {
+    transition: all 0.3s ease;
+}
+
+/* Focus states */
+.sidebar-link:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Print styles */
+@media print {
+    header.topbar,
+    aside.left-sidebar,
+    .sidebar-overlay {
+        display: none !important;
+    }
+    
+    .page-wrapper {
+        margin: 0 !important;
+    }
+}

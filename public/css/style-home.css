@@ -1,0 +1,99 @@
+body {
+    background-image: url('../backend/images/leaves.png');
+    background-repeat: repeat;
+    background-position: top left;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 0;
+}
+
+    /* Hilangkan scroll horizontal dari body */
+    body {
+        overflow-x: hidden;
+    }
+
+    /* Scroll container styling */
+    #bookScroll {
+        display: flex;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        gap: 1rem;
+        padding: 1rem 0;
+    }
+
+    #bookScroll::-webkit-scrollbar {
+        display: none; /* Hilangkan scrollbar */
+    }
+
+    /* Book Card Styling */
+    #bookScroll .card {
+        flex: 0 0 auto;
+        width: 180px;
+    }
+    .card-img-top {
+        height: 200px;
+        width: auto;
+        object-fit: contain;
+        margin: 0 auto;
+        display: block;
+      }
+      .my-custom-margin {
+        margin-top: 1rem;  /* Adjust top margin */
+        margin-bottom: 1rem;  /* Adjust bottom margin */
+    }
+          
+    /* custom dropdown toko saya  */
+
+    .dropdown-toko {
+        position: relative;
+    }
+    
+    .dropdown-toko .dropdown-content {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 280px;
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        display: none;
+    }
+    
+    .dropdown-toko:hover .dropdown-content {
+        display: block;
+    }
+    
+
+    .dropdown-content .btn-success {
+        background-color: #212529;
+        color: white;
+        padding: 8px 5px;
+        width: 100%;
+        border: none;
+        font-weight: bold;
+        display: block;
+        text-align: center;
+        text-decoration: none;
+    }
+    .dropdown-content{
+        font-size: 13px;
+        text-align: center;
+    }
+    .dropdown-content a{
+        font-size: 14px;
+    }
+
+    .cart-hover-dropdown:hover .cart-dropdown {
+    display: block;
+}
+    .cart-hover-dropdown .cart-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+    }
+
+    
