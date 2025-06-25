@@ -30,7 +30,11 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Admin\ChatHistoryController;
 
+
+// Homepage publik
+Route::get('/homepage', [UserController::class, 'homepage'])->name('user.homepage');
 
 Route::middleware(['auth'])->group(function () {
     // Profile
@@ -198,9 +202,19 @@ Route::middleware(['auth', 'role:penjual', 'checkStoreActive'])->prefix('seller'
         
 });
 
-
+ 
 
 Route::get('/', [UserController::class, 'homepage']);
+Route::get('/homepage', [UserController::class, 'homepage'])->name('user.homepage');
+
 
 // Payment notification from Midtrans (no auth required)
 Route::post('/payment/notification', [PaymentController::class, 'notification'])->name('payment.notification');
+
+Route::view('/chat-ollama', 'chat-ollama');
+Route::get('/chat', function () {
+    return view('chat');
+})->name('chat');
+
+
+Route::get('/admin/chat-histories', [ChatHistoryController::class, 'index'])->middleware('auth');

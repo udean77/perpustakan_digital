@@ -66,7 +66,7 @@
         <li class="nav-item dropdown-toko me-3">
           <!-- Blade Template -->
                 @php
-                    $hasStore = auth()->user()->store !== null;
+                    $hasStore = auth()->check() && auth()->user()->store !== null;
                 @endphp
 
                 <a class="nav-link" href="{{ $hasStore ? route('seller.dashboard') : '#' }}" title="Toko" onclick="{{ $hasStore ? '' : 'return confirmCreateStore(event)' }}">
@@ -85,7 +85,7 @@
 
 
             <div class="dropdown-content">
-                @if (Auth::user()->store)
+                @if (auth()->check() && Auth::user()->store)
                     <p class="mb-2">Toko Anda: <strong>{{ Auth::user()->store->name }}</strong></p>
                     <a href="{{ route('seller.dashboard') }}" class="btn btn-success mb-2 rounded-pill">Kelola Toko</a>
                 @else
@@ -141,9 +141,9 @@
 
             <!-- Akun -->
             <li class="nav-item dropdown">
+                @if(auth()->check())
                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="akunDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="{{ Auth::user()->foto ? asset('storage/' . Auth::user()->foto) : asset('images/img-default.jpg') }}"  alt="Avatar" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
-
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="akunDropdown" style="width: 300px;">
                     <li class="p-3">
@@ -163,6 +163,7 @@
                         </form>
                     </li>
                 </ul>
+                @endif
             </li>
         </ul>
     </div>
@@ -230,6 +231,9 @@
 <script src="{{ asset('js/create.js') }}"></script>
     
     @stack('scripts')
+    
+    <!-- Chat Widget -->
+    @include('components.chat-widget')
     
 </body>
 <footer class="py-5 bg-dark">

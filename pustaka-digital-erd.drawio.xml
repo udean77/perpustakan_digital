@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Pustaka Digital ERD" id="pustaka-digital-erd">
+    <mxGraphModel dx="1000" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <!-- Users -->
+        <mxCell id="2" value="Users\n- id: int\n- name: string\n- email: string\n- role: string\n- status: string\n- phone: string" style="shape=swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="180" height="120" as="geometry"/>
+        </mxCell>
+        <!-- Store -->
+        <mxCell id="3" value="Store\n- id: int\n- name: string\n- description: string\n- status: string\n- image: string" style="shape=swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="40" width="180" height="120" as="geometry"/>
+        </mxCell>
+        <!-- Books -->
+        <mxCell id="4" value="Books\n- id: int\n- title: string\n- description: text\n- price: decimal\n- stock: int\n- cover_image: string\n- status: string\n- store_id: int" style="shape=swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="40" width="200" height="140" as="geometry"/>
+        </mxCell>
+        <!-- Orders -->
+        <mxCell id="5" value="Orders\n- id: int\n- user_id: int\n- address_id: int\n- total_amount: decimal\n- payment_status: string\n- order_status: string" style="shape=swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="200" height="120" as="geometry"/>
+        </mxCell>
+        <!-- OrderItems -->
+        <mxCell id="6" value="OrderItems\n- id: int\n- order_id: int\n- book_id: int\n- quantity: int\n- price: decimal" style="shape=swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="220" width="200" height="120" as="geometry"/>
+        </mxCell>
+        <!-- RedeemCodes -->
+        <mxCell id="7" value="RedeemCodes\n- code: string\n- type: string\n- value: decimal\n- value_type: string\n- max_usage: int\n- used_count: int\n- min_purchase: decimal\n- valid_from: datetime\n- valid_until: datetime\n- status: string" style="shape=swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="220" width="220" height="180" as="geometry"/>
+        </mxCell>
+        <!-- Cart -->
+        <mxCell id="8" value="Cart\n- id: int\n- user_id: int\n- book_id: int\n- quantity: int" style="shape=swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="400" width="180" height="100" as="geometry"/>
+        </mxCell>
+        <!-- Wishlist -->
+        <mxCell id="9" value="Wishlist\n- id: int\n- user_id: int\n- book_id: int" style="shape=swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="400" width="180" height="80" as="geometry"/>
+        </mxCell>
+        <!-- Address -->
+        <mxCell id="10" value="Address\n- id: int\n- user_id: int\n- address: string\n- city: string\n- postal_code: string\n- is_primary: boolean" style="shape=swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="420" width="200" height="120" as="geometry"/>
+        </mxCell>
+        <!-- Reports -->
+        <mxCell id="11" value="Reports\n- id: int\n- user_id: int\n- book_id: int\n- title: string\n- description: text\n- status: string" style="shape=swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="40" width="200" height="120" as="geometry"/>
+        </mxCell>
+        <!-- Relationships -->
+        <!-- Users - Store (1 - n) -->
+        <mxCell id="12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="2" target="3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Store - Books (1 - n) -->
+        <mxCell id="13" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Users - Orders (1 - n) -->
+        <mxCell id="14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="2" target="5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Orders - OrderItems (1 - n) -->
+        <mxCell id="15" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="5" target="6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Books - OrderItems (1 - n) -->
+        <mxCell id="16" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="4" target="6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Orders - RedeemCodes (n - 1) -->
+        <mxCell id="17" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;dashed=1;" edge="1" parent="1" source="5" target="7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Users - Cart (1 - n) -->
+        <mxCell id="18" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="2" target="8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Books - Cart (1 - n) -->
+        <mxCell id="19" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="4" target="8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Users - Wishlist (1 - n) -->
+        <mxCell id="20" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="2" target="9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Books - Wishlist (1 - n) -->
+        <mxCell id="21" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="4" target="9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Users - Address (1 - n) -->
+        <mxCell id="22" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="2" target="10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Orders - Address (n - 1) -->
+        <mxCell id="23" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;dashed=1;" edge="1" parent="1" source="5" target="10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Users - Reports (1 - n) -->
+        <mxCell id="24" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="2" target="11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Books - Reports (1 - n) -->
+        <mxCell id="25" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;" edge="1" parent="1" source="4" target="11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile> 

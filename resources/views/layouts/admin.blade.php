@@ -200,6 +200,13 @@
                     </a>
                 </li>
 
+                <!-- 💬 Riwayat Chat User -->
+                <li class="sidebar-item">
+                    <a href="{{ url('/admin/chat-histories') }}" class="sidebar-link waves-effect waves-dark">
+                        <i class="mdi mdi-chat"></i><span class="hide-menu">Riwayat Chat User</span>
+                    </a>
+                </li>
+
             </ul>
         </nav>
         <!-- End Sidebar navigation -->

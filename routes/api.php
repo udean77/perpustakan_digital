@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Models\Chat;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\BookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,3 +22,6 @@ use App\Http\Controllers\ChatController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('/chat', [\App\Http\Controllers\ChatController::class, 'chat']);
+Route::get('/books', [\App\Http\Controllers\BookController::class, 'index']);

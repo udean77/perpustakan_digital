@@ -30,5 +30,10 @@ class DatabaseSeeder extends Seeder
             'hp'=> '0895613297075',
         ]);
        
+        $this->call([
+            RedeemCodeSeeder::class,
+            TestDataSeeder::class,
+            BookSeeder::class,
+        ]);
     }
 }

@@ -10,7 +10,7 @@ class BookController extends Controller
 {
     public function index(Request $request)
     {
-        // Daftar kategori sesuai data string di kolom 'category'
+        $query = Book::query();
         $categories = [
             (object)['id' => 'fiksi', 'name' => 'Fiksi'],
             (object)['id' => 'non-fiksi', 'name' => 'Non-Fiksi'],
@@ -19,77 +19,36 @@ class BookController extends Controller
             (object)['id' => 'komik', 'name' => 'Komik'],
         ];
 
-        $query = Book::with('store')
-            ->withAvg('reviews', 'rating')
-            ->where('status', 'active')
-            ->whereHas('store', function ($q) {
-                $q->where('status', 'active'); // Filter toko aktif
-            });
-
-        // Filter keyword di title atau author
         if ($request->filled('keyword')) {
             $query->where(function ($q) use ($request) {
                 $q->where('title', 'like', '%' . $request->keyword . '%')
                   ->orWhere('author', 'like', '%' . $request->keyword . '%')
-                   ->orWhere('category', 'like', '%' . $request->keyword . '%');
+                  ->orWhere('category', 'like', '%' . $request->keyword . '%');
             });
         }
-        // Jika filter 'category' tunggal (dari dropdown), masukkan ke request->kategori
         if ($request->filled('category')) {
-            $request->merge([
-                'kategori' => array_merge((array)$request->kategori, [$request->category])
-            ]);
+            $query->where('category', $request->category);
         }
-
-
-        // Filter kategori (bisa lebih dari satu)
-        if ($request->filled('kategori')) {
-            $kategori = is_array($request->kategori) ? $request->kategori : [$request->kategori];
-            $query->whereIn('category', $kategori);
-        }
-
-        // Filter jenis buku (physical/ebook)
-        if ($request->filled('jenis')) {
-            $jenis = is_array($request->jenis) ? $request->jenis : [$request->jenis];
-            $query->whereIn('book_type', $jenis);
-        }
-
-        // Filter rating minimum (berdasarkan avg rating)
-        if ($request->filled('rating')) {
-            $query->having('reviews_avg_rating', '>=', $request->rating);
-        }
-
-        // Filter harga_min dan harga_max
-        if ($request->filled('harga_min')) {
-            $query->where('price', '>=', $request->harga_min);
-        }
-        if ($request->filled('harga_max')) {
-            $query->where('price', '<=', $request->harga_max);
-        }
-
-        // Filter stok tersedia (stock > 0)
-        if ($request->has('stok_tersedia')) {
-            $query->where('stock', '>', 0);
-        }
-
-        // Sorting
-        switch ($request->input('sort')) {
-            case 'harga_terendah':
-                $query->orderBy('price', 'asc');
-                break;
-            case 'harga_tertinggi':
-                $query->orderBy('price', 'desc');
-                break;
-            case 'latest':
-            default:
-                $query->orderBy('created_at', 'desc');
-                break;
-        }
-
-        // Ambil data dengan pagination 12 per halaman
         $books = $query->paginate(12)->withQueryString();
-
         return view('user.books.index', compact('books', 'categories'));
+    }
+
+    // Endpoint API untuk JSON
+    public function apiIndex(Request $request)
+    {
+        $query = Book::query();
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('author', 'like', "%{$search}%");
+        }
+        $books = $query->limit(10)->get(['id', 'title', 'author', 'description', 'price', 'stock']);
+        return response()->json([
+            'success' => true,
+            'data' => $books,
+            'count' => $books->count()
+        ]);
     }
 
     // Menampilkan detail buku
