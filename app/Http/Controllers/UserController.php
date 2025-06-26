@@ -20,12 +20,12 @@ class UserController extends Controller
     {
         $books = Book::with('store')
             ->where('status', 'active')
-            ->whereHas('store', function ($query) {
-                $query->where('status', 'active');  // hanya dari toko aktif
-            })
-            ->latest()
-            ->take(20)
-            ->get();
+        ->whereHas('store', function ($query) {
+            $query->where('status', 'active');  // hanya dari toko aktif
+        })
+        ->latest()
+        ->take(20)
+        ->get();
         return view('user.homepage',compact('books')); // pastikan view ini ada di resources/views/user/homepage.blade.php
     }
     

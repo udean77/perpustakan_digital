@@ -31,6 +31,7 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Admin\ChatHistoryController;
+use App\Http\Controllers\ShippingController;
 
 
 // Homepage publik
@@ -81,9 +82,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/wishlist/toggle/{book}', [WishlistController::class, 'toggleWishlist'])->name('user.wishlist.toggle');
     Route::delete('/wishlist/{book_id}', [WishlistController::class, 'destroy'])->name('user.wishlist.destroy');
 
-    
-    // book
-    Route::resource('books', BookController::class)->only(['index', 'show'])->names('books');
     
     // Transaction
     Route::get('/transactions', [TransactionController::class, 'index'])->name('user.transaction.index');
@@ -202,7 +200,7 @@ Route::middleware(['auth', 'role:penjual', 'checkStoreActive'])->prefix('seller'
         
 });
 
- 
+
 
 Route::get('/', [UserController::class, 'homepage']);
 Route::get('/homepage', [UserController::class, 'homepage'])->name('user.homepage');
@@ -218,3 +216,11 @@ Route::get('/chat', function () {
 
 
 Route::get('/admin/chat-histories', [ChatHistoryController::class, 'index'])->middleware('auth');
+
+// Publicly accessible book routes
+Route::resource('books', BookController::class)->only(['index', 'show'])->names('books');
+
+Route::prefix('ongkir')->group(function () {
+    Route::get('/search-cities', [ShippingController::class, 'searchCities'])->name('ongkir.search_cities');
+    Route::post('/check', [ShippingController::class, 'checkOngkir'])->name('ongkir.check');
+});

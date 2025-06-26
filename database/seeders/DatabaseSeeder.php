@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
         ]);
        
         $this->call([
+            // RegionsSeeder::class, // Temporarily disabled
             RedeemCodeSeeder::class,
             TestDataSeeder::class,
             BookSeeder::class,

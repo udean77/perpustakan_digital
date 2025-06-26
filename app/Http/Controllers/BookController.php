@@ -23,7 +23,7 @@ class BookController extends Controller
             $query->where(function ($q) use ($request) {
                 $q->where('title', 'like', '%' . $request->keyword . '%')
                   ->orWhere('author', 'like', '%' . $request->keyword . '%')
-                  ->orWhere('category', 'like', '%' . $request->keyword . '%');
+                   ->orWhere('category', 'like', '%' . $request->keyword . '%');
             });
         }
         if ($request->filled('category')) {

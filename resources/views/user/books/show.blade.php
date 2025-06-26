@@ -76,12 +76,13 @@
 
             {{-- Wishlist & Aksi Tambahan --}}
             <div class="d-flex justify-content-between align-items-center text-muted small mt-3">
-                <div role="button"
+                @if ($book->store)
+                <div class="btn btn-success btn-sm"
                     onclick="window.open('https://wa.me/{{ $book->store->phone }}?text=Halo%20saya%20tertarik%20dengan%20buku%20{{ urlencode($book->title) }}', '_blank')"
-                    class="btn btn-success btn-sm"
                     style="cursor:pointer;">
                     <i class="bi bi-whatsapp me-1"></i> Chat via WhatsApp
                 </div>
+                @endif
 
                 <div class="vr mx-2"></div>
 
@@ -103,10 +104,12 @@
 
         </div>
     </div>
+
+    @if($book->store)
     <div class="d-flex align-items-center justify-content-between border rounded p-4 mt-4 bg-white">
         <div class="d-flex align-items-center">
             {{-- Logo Toko --}}
-            <img src="{{ $book->store && $book->store->logo ? asset('storage/store_logo/' . $book->store->logo) : asset('images/store_default.png') }}" 
+            <img src="{{ $book->store && $book->store->logo ? asset('storage/store_logo/' . $book->store->logo) : asset('images/store_default.png') }}"
                 class="rounded-circle me-3" width="80" height="80" alt="Logo Toko">
 
             <div>
@@ -125,6 +128,7 @@
             Lihat
         </a>
     </div>
+    @endif
 
 
 
