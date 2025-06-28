@@ -40,6 +40,15 @@
                 <span id="subtotal-amount" data-value="{{ $subtotal }}">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
             </div>
 
+            {{-- Ongkir Section --}}
+            @php
+                $shippingCost = rand(10000, 30000);
+            @endphp
+            <div class="d-flex justify-content-between mt-2">
+                <span class="fw-medium">Ongkos Kirim</span>
+                <span id="shipping-cost" class="text-info">Rp {{ number_format($shippingCost, 0, ',', '.') }}</span>
+            </div>
+
             {{-- Redeem Code Section --}}
             <div class="mt-3">
                 <label for="redeem-code-input" class="form-label">Punya kode redeem?</label>
@@ -57,7 +66,7 @@
 
             <div class="d-flex justify-content-between fw-bold mt-2">
                 <span>Total</span>
-                <span id="total-amount">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+                <span id="total-amount">Rp {{ number_format($subtotal + $shippingCost, 0, ',', '.') }}</span>
             </div>
         </div>
     </div>
@@ -68,6 +77,7 @@
         <input type="hidden" name="book_id" value="{{ $book->id }}">
         <input type="hidden" name="quantity" id="quantity-input" value="1">
         <input type="hidden" name="redeem_code" id="applied_redeem_code" value="">
+        <input type="hidden" name="shipping_cost" value="{{ $shippingCost ?? 0 }}">
 
         {{-- Alamat Pengiriman --}}
         <div class="card mb-4">
@@ -124,11 +134,32 @@
         const checkoutForm = document.querySelector('form');
         
         let subtotal = parseFloat(subtotalEl.getAttribute('data-value'));
+        let shippingCost = {{ $shippingCost ?? 0 }};
         let appliedCode = null;
 
         // Initialize discount display
         discountAmountEl.textContent = `- Rp 0`;
         discountRow.style.display = 'flex';
+
+        // Update total calculation function
+        function updateTotal() {
+            let discount = 0;
+            if (appliedCode) {
+                const discountText = discountAmountEl.textContent;
+                discount = parseInt(discountText.replace(/[^\d]/g, '')) || 0;
+            }
+            const newTotal = subtotal + shippingCost - discount;
+            totalEl.textContent = `Rp ${number_format(newTotal)}`;
+            
+            // Update hidden input for shipping cost
+            const shippingCostInput = document.querySelector('input[name="shipping_cost"]');
+            if (shippingCostInput) {
+                shippingCostInput.value = shippingCost;
+            }
+        }
+
+        // Initial total calculation
+        updateTotal();
 
         applyBtn.addEventListener('click', async function() {
             const code = redeemInput.value.trim().toUpperCase();
@@ -151,7 +182,7 @@
                 
                 feedbackDiv.innerHTML = `<span class="text-success">✓ ${result.data.description || 'Kode berhasil diterapkan!'}</span>`;
                 discountAmountEl.textContent = `- Rp ${number_format(discount)}`;
-                totalEl.textContent = `Rp ${number_format(subtotal - discount)}`;
+                updateTotal();
 
                 const hiddenInput = document.getElementById('applied_redeem_code');
                 hiddenInput.value = appliedCode;
@@ -160,7 +191,7 @@
                 appliedCode = null;
                 feedbackDiv.innerHTML = `<span class="text-danger">✗ ${result.message}</span>`;
                 discountAmountEl.textContent = `- Rp 0`;
-                totalEl.textContent = `Rp ${number_format(subtotal)}`;
+                updateTotal();
 
                 const hiddenInput = document.getElementById('applied_redeem_code');
                 if (hiddenInput) {

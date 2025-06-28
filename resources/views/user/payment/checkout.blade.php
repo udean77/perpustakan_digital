@@ -37,6 +37,11 @@
                     </div>
                     
                     <div class="d-flex justify-content-between">
+                        <span>Ongkos Kirim</span>
+                        <span class="text-info">Rp{{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
                         <span>Diskon</span>
                         <span class="text-success">
                             @if($order->discount_amount > 0)

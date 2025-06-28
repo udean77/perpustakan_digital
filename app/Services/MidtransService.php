@@ -24,6 +24,35 @@ class MidtransService
      */
     public function createSnapToken(Order $order)
     {
+        $itemDetails = $this->getItemDetails($order);
+        
+        // Calculate total from item details for validation
+        $calculatedTotal = 0;
+        foreach ($itemDetails as $item) {
+            $calculatedTotal += $item['price'] * $item['quantity'];
+        }
+        
+        // Log for debugging
+        Log::info('Midtrans payment details', [
+            'order_id' => $order->id,
+            'order_total_amount' => $order->total_amount,
+            'calculated_total' => $calculatedTotal,
+            'shipping_cost' => $order->shipping_cost,
+            'discount_amount' => $order->discount_amount,
+            'item_details' => $itemDetails
+        ]);
+        
+        // Validate that calculated total matches order total
+        if (abs($calculatedTotal - $order->total_amount) > 0.01) {
+            Log::error('Total mismatch in Midtrans payment', [
+                'order_id' => $order->id,
+                'order_total' => $order->total_amount,
+                'calculated_total' => $calculatedTotal,
+                'difference' => $calculatedTotal - $order->total_amount
+            ]);
+            throw new \Exception('Total amount mismatch. Order total: ' . $order->total_amount . ', Calculated total: ' . $calculatedTotal);
+        }
+
         $params = [
             'transaction_details' => [
                 'order_id' => 'ORDER-' . $order->id . '-' . time(),
@@ -34,7 +63,7 @@ class MidtransService
                 'email' => $order->user->email,
                 'phone' => $order->user->hp ?? '',
             ],
-            'item_details' => $this->getItemDetails($order),
+            'item_details' => $itemDetails,
             'enabled_payments' => [
                 'credit_card', 'bca_va', 'bni_va', 'bri_va', 'mandiri_clickpay',
                 'gopay', 'indomaret', 'danamon_online', 'akulaku'
@@ -67,6 +96,16 @@ class MidtransService
                 'price' => $item->price,
                 'quantity' => $item->quantity,
                 'name' => $item->book->title,
+            ];
+        }
+
+        // Add shipping cost as separate item
+        if ($order->shipping_cost > 0) {
+            $items[] = [
+                'id' => 'SHIPPING',
+                'price' => $order->shipping_cost,
+                'quantity' => 1,
+                'name' => 'Ongkos Kirim',
             ];
         }
 

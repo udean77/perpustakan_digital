@@ -60,7 +60,8 @@ class CheckoutController extends Controller
     {
         $request->validate([
             'shipping_address' => 'required|string',
-            'redeem_code' => 'nullable|string'
+            'redeem_code' => 'nullable|string',
+            'shipping_cost' => 'required|numeric|min:10000|max:30000'
         ]);
 
         $userId = auth()->id();
@@ -90,8 +91,8 @@ class CheckoutController extends Controller
                 }
             }
 
-            // Generate random shipping cost between 10,000 and 30,000
-            $shippingCost = rand(10000, 30000);
+            // Gunakan shipping cost dari form
+            $shippingCost = $request->shipping_cost;
 
             $totalAmount = $subtotal - $discountAmount + $shippingCost;
 
@@ -164,7 +165,8 @@ class CheckoutController extends Controller
             'book_id' => 'required|exists:books,id',
             'quantity' => 'required|integer|min:1',
             'shipping_address' => 'required|string',
-            'redeem_code' => 'nullable|string'
+            'redeem_code' => 'nullable|string',
+            'shipping_cost' => 'required|numeric|min:10000|max:30000'
         ]);
 
         DB::beginTransaction();
@@ -194,8 +196,8 @@ class CheckoutController extends Controller
                 }
             }
             
-            // Generate random shipping cost between 10,000 and 30,000
-            $shippingCost = rand(10000, 30000);
+            // Gunakan shipping cost dari form
+            $shippingCost = $request->shipping_cost;
 
             $totalAmount = $subtotal - $discountAmount + $shippingCost;
             

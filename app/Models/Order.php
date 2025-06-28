@@ -12,6 +12,7 @@ class Order extends Model
         'address_id', 
         'status',
         'total_amount',
+        'shipping_cost',
         'payment_method',
         'shipping_address',
         'ordered_at',
@@ -21,6 +22,7 @@ class Order extends Model
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'shipping_cost' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'ordered_at' => 'datetime',
     ];
