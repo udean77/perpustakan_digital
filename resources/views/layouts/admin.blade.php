@@ -207,6 +207,13 @@
                     </a>
                 </li>
 
+                <!-- 📊 Chat Analytics -->
+                <li class="sidebar-item">
+                    <a href="{{ route('admin.chat_analytics') }}" class="sidebar-link waves-effect waves-dark">
+                        <i class="mdi mdi-chart-line"></i><span class="hide-menu">Chat Analytics</span>
+                    </a>
+                </li>
+
             </ul>
         </nav>
         <!-- End Sidebar navigation -->

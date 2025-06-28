@@ -90,7 +90,10 @@ class CheckoutController extends Controller
                 }
             }
 
-            $totalAmount = $subtotal - $discountAmount;
+            // Generate random shipping cost between 10,000 and 30,000
+            $shippingCost = rand(10000, 30000);
+
+            $totalAmount = $subtotal - $discountAmount + $shippingCost;
 
             // ✅ Tambahkan ini untuk ambil alamat default
             $selectedAddress = $user->addresses()->where('is_default', true)->first();
@@ -103,6 +106,7 @@ class CheckoutController extends Controller
                 'user_id' => $user->id,
                 'address_id' => $selectedAddress->id,
                 'total_amount' => $totalAmount,
+                'shipping_cost' => $shippingCost,
                 'payment_method' => 'midtrans',
                 'shipping_address' => $request->shipping_address,
                 'status' => 'pending',
@@ -190,7 +194,10 @@ class CheckoutController extends Controller
                 }
             }
             
-            $totalAmount = $subtotal - $discountAmount;
+            // Generate random shipping cost between 10,000 and 30,000
+            $shippingCost = rand(10000, 30000);
+
+            $totalAmount = $subtotal - $discountAmount + $shippingCost;
             
             $selectedAddress = $user->addresses()->where('is_default', true)->first();
             if (!$selectedAddress) {
@@ -202,6 +209,7 @@ class CheckoutController extends Controller
                 'user_id' => $user->id,
                 'address_id' => $selectedAddress->id,
                 'total_amount' => $totalAmount,
+                'shipping_cost' => $shippingCost,
                 'payment_method' => 'midtrans',
                 'shipping_address' => $request->shipping_address,
                 'status' => 'pending',

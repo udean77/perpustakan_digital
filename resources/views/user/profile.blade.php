@@ -163,10 +163,27 @@
                                             <span class="badge bg-success">Default</span> 
                                         @endif
                                         <br>
+                                        <strong>Alamat:</strong><br>
                                         {{ $address->alamat_lengkap }}<br>
-                                        Penerima: {{ $address->nama_penerima }} - {{ $address->no_hp }}<br>
+                                        @if($address->city)
+                                            {{ $address->city }}, {{ $address->province }}
+                                            @if($address->kode_pos)
+                                                {{ $address->kode_pos }}
+                                            @endif
+                                            <br>
+                                        @endif
+                                        <strong>Penerima:</strong> {{ $address->nama_penerima }} - {{ $address->no_hp }}<br>
 
-                                        <a href="#" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalEditAddress" data-id="{{ $address->id }}" data-label="{{ $address->label }}"data-alamat="{{ $address->alamat_lengkap }}"data-penerima="{{ $address->nama_penerima }}" data-nohp="{{ $address->no_hp }}" data-default="{{ $address->is_default }}"> Edit </a>
+                                        <a href="#" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalEditAddress" 
+                                           data-id="{{ $address->id }}" 
+                                           data-label="{{ $address->label }}"
+                                           data-province="{{ $address->province }}"
+                                           data-city="{{ $address->city }}"
+                                           data-alamat="{{ $address->alamat_lengkap }}"
+                                           data-kode-pos="{{ $address->kode_pos }}"
+                                           data-penerima="{{ $address->nama_penerima }}" 
+                                           data-nohp="{{ $address->no_hp }}" 
+                                           data-default="{{ $address->is_default }}"> Edit </a>
 
                                         <form action="{{ route('address.delete', $address->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus alamat ini?')">
                                             @csrf
@@ -222,11 +239,23 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="label">Label</label>
-                        <input type="text" name="label" id="label" class="form-control" required>
+                        <input type="text" name="label" id="label" class="form-control" placeholder="Contoh: Rumah, Kantor" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="province">Provinsi</label>
+                        <input type="text" name="province" id="province" class="form-control" placeholder="Contoh: DKI Jakarta" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="city">Kota/Kabupaten</label>
+                        <input type="text" name="city" id="city" class="form-control" placeholder="Contoh: Jakarta Selatan" required>
                     </div>
                     <div class="mb-3">
                         <label for="alamat_lengkap">Alamat Lengkap</label>
-                        <textarea name="alamat_lengkap" id="alamat_lengkap" class="form-control" required></textarea>
+                        <textarea name="alamat_lengkap" id="alamat_lengkap" class="form-control" placeholder="Contoh: Jl. Sudirman No. 123, RT 001/RW 002" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="kode_pos">Kode Pos</label>
+                        <input type="text" name="kode_pos" id="kode_pos" class="form-control" placeholder="Contoh: 12190" maxlength="5">
                     </div>
                     <div class="mb-3">
                         <label for="nama_penerima">Nama Penerima</label>
@@ -249,9 +278,64 @@
         </form>
     </div>
 </div>
+
+{{-- Modal Edit Alamat --}}
+<div class="modal fade" id="modalEditAddress" tabindex="-1" aria-labelledby="modalEditAddressLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="editAddressForm" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Alamat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_label">Label</label>
+                        <input type="text" name="label" id="edit_label" class="form-control" placeholder="Contoh: Rumah, Kantor" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_province">Provinsi</label>
+                        <input type="text" name="province" id="edit_province" class="form-control" placeholder="Contoh: DKI Jakarta" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_city">Kota/Kabupaten</label>
+                        <input type="text" name="city" id="edit_city" class="form-control" placeholder="Contoh: Jakarta Selatan" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_alamat_lengkap">Alamat Lengkap</label>
+                        <textarea name="alamat_lengkap" id="edit_alamat_lengkap" class="form-control" placeholder="Contoh: Jl. Sudirman No. 123, RT 001/RW 002" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_kode_pos">Kode Pos</label>
+                        <input type="text" name="kode_pos" id="edit_kode_pos" class="form-control" placeholder="Contoh: 12190" maxlength="5">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_nama_penerima">Nama Penerima</label>
+                        <input type="text" name="nama_penerima" id="edit_nama_penerima" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_no_hp">No. HP</label>
+                        <input type="text" name="no_hp" id="edit_no_hp" class="form-control" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="is_default" id="edit_is_default" class="form-check-input">
+                        <label for="edit_is_default" class="form-check-label">Jadikan alamat default</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const editButtons = document.querySelectorAll('.btn-edit-profile');
@@ -302,6 +386,38 @@
 
                 modal.show();
             });
+        });
+    });
+
+    $(document).ready(function() {
+        // Form validation and other functionality can be added here if needed
+        console.log('Profile page loaded successfully');
+        
+        // Handle edit address modal
+        $('#modalEditAddress').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var addressId = button.data('id');
+            var label = button.data('label');
+            var province = button.data('province');
+            var city = button.data('city');
+            var alamat = button.data('alamat');
+            var kodePos = button.data('kode-pos');
+            var penerima = button.data('penerima');
+            var nohp = button.data('nohp');
+            var isDefault = button.data('default');
+            
+            var modal = $(this);
+            modal.find('#edit_label').val(label);
+            modal.find('#edit_province').val(province);
+            modal.find('#edit_city').val(city);
+            modal.find('#edit_alamat_lengkap').val(alamat);
+            modal.find('#edit_kode_pos').val(kodePos);
+            modal.find('#edit_nama_penerima').val(penerima);
+            modal.find('#edit_no_hp').val(nohp);
+            modal.find('#edit_is_default').prop('checked', isDefault == 1);
+            
+            // Set form action
+            modal.find('#editAddressForm').attr('action', '/alamat/' + addressId);
         });
     });
 </script>

@@ -31,7 +31,9 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Admin\ChatHistoryController;
-use App\Http\Controllers\ShippingController;
+use App\Http\Controllers\Admin\ChatAnalyticsController;
+use App\Http\Controllers\UserPreferenceController;
+use App\Http\Controllers\ChatController;
 
 
 // Homepage publik
@@ -114,8 +116,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/redeem-code/use', [RedeemCodeController::class, 'useCode'])->name('redeem_code.use');
     Route::get('/redeem-code/available', [RedeemCodeController::class, 'getAvailableCodes'])->name('redeem_code.available');
 
-
-
+    // User Preferences
+    Route::get('/preferences', [UserPreferenceController::class, 'index'])->name('user.preferences.index');
+    Route::post('/preferences', [UserPreferenceController::class, 'update'])->name('user.preferences.update');
+    Route::post('/preferences/auto-update', [UserPreferenceController::class, 'autoUpdate'])->name('user.preferences.autoUpdate');
+    Route::post('/preferences/reset', [UserPreferenceController::class, 'reset'])->name('user.preferences.reset');
 
     Route::post('/logout', function () {
         Auth::logout();
@@ -175,8 +180,39 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::patch('/reports/{id}/status', [AdminReportController::class, 'updateStatus'])->name('admin.reports.updateStatus');
     Route::delete('/reports/{id}', [AdminReportController::class, 'destroy'])->name('admin.reports.destroy');
 
+    // Chat Analytics
+    Route::get('/chat-analytics', [ChatAnalyticsController::class, 'index'])->name('admin.chat_analytics');
+    Route::get('/chat-sessions', [ChatAnalyticsController::class, 'sessions'])->name('admin.chat_sessions');
+    Route::get('/chat-sessions/{sessionId}', [ChatAnalyticsController::class, 'sessionDetail'])->name('admin.chat_session_detail');
+    Route::get('/chat-analytics/export', [ChatAnalyticsController::class, 'export'])->name('admin.chat_analytics.export');
     
+    // Test route for chat analytics
+    Route::get('/test-chat-analytics', function() {
+        return view('admin.chat_analytics', [
+            'stats' => [
+                'total_sessions' => 0,
+                'total_messages' => 0,
+                'active_sessions_today' => 0,
+                'avg_response_time' => 0,
+                'satisfaction_rate' => 0,
+            ],
+            'topIntents' => collect([]),
+            'topQueryTypes' => collect([]),
+            'hourlyActivity' => collect([]),
+            'dailyActivity' => collect([]),
+            'topUsers' => collect([]),
+            'recentSessions' => collect([]),
+        ]);
+    })->name('admin.test_chat_analytics');
     
+    // Test admin access
+    Route::get('/test-admin', function() {
+        return response()->json([
+            'message' => 'Admin access working',
+            'user' => auth()->user()->nama,
+            'role' => auth()->user()->role
+        ]);
+    })->name('admin.test');
 });
 
 
@@ -220,7 +256,7 @@ Route::get('/admin/chat-histories', [ChatHistoryController::class, 'index'])->mi
 // Publicly accessible book routes
 Route::resource('books', BookController::class)->only(['index', 'show'])->names('books');
 
-Route::prefix('ongkir')->group(function () {
-    Route::get('/search-cities', [ShippingController::class, 'searchCities'])->name('ongkir.search_cities');
-    Route::post('/check', [ShippingController::class, 'checkOngkir'])->name('ongkir.check');
-});
+// Chat API routes
+Route::post('/api/chat', [ChatController::class, 'chat'])->middleware('auth');
+Route::post('/api/chat/end-session', [ChatController::class, 'endSession'])->middleware('auth');
+Route::post('/api/chat/feedback', [ChatController::class, 'feedback'])->middleware('auth');

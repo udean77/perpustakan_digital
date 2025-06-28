@@ -88,12 +88,26 @@ class User extends Authenticatable
         return $this->hasMany(Address::class);
     }
 
+    public function preferences()
+    {
+        return $this->hasOne(UserPreference::class);
+    }
+
+    public function chatAnalytics()
+    {
+        return $this->hasMany(ChatAnalytics::class);
+    }
+
+    public function chatHistories()
+    {
+        return $this->hasMany(ChatHistory::class);
+    }
+
     public function getProfilePhotoUrlAttribute()
     {
         return $this->foto
             ? asset('storage/' . $this->foto)
             : asset('images/default-avatar.png');
     }
-
 
 }

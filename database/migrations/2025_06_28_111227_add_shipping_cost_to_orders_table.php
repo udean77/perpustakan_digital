@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('provinces', function (Blueprint $table) {
-            $table->integer('id')->primary();
-            $table->string('name');
+        Schema::table('orders', function (Blueprint $table) {
+            $table->decimal('shipping_cost', 10, 2)->default(0)->after('total_amount');
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('provinces');
+        Schema::table('orders', function (Blueprint $table) {
+            $table->dropColumn('shipping_cost');
+        });
     }
 };

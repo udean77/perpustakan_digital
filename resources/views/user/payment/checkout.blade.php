@@ -77,26 +77,45 @@
 
             <div class="card mt-3">
                 <div class="card-header">
-                    <h5>Opsi Pengiriman</h5>
+                    <h5>Pilih Alamat Pengiriman</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label for="city-search" class="form-label">Cari Kota/Kabupaten Tujuan</label>
-                        <input type="text" class="form-control" id="city-search" placeholder="Ketik nama kota...">
-                        <div id="city-search-results" class="list-group mt-1"></div>
-                        <input type="hidden" id="destination-city-id" name="destination_city_id">
+                    @foreach(auth()->user()->addresses as $address)
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="shipping_address"
+                                id="address{{ $address->id }}"
+                                value="{{ $address->id }}"
+                                {{ $loop->first ? 'checked' : '' }}>
+                            <label class="form-check-label" for="address{{ $address->id }}">
+                                {{ $address->label }} - {{ $address->alamat_lengkap }}
+                            </label>
+                        </div>
+                    @endforeach
+                    <a href="{{ route('user.profile') }}" class="btn btn-link mt-2">Tambah/ubah alamat di profil</a>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Informasi Pengiriman</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="shipping_address">Alamat Pengiriman</label>
+                        <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required>{{ auth()->user()->addresses->first()->address ?? '' }}</textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="courier" class="form-label">Kurir</label>
-                        <select class="form-control" id="courier" name="courier">
-                            <option value="">Pilih Kurir</option>
-                            <option value="jne">JNE</option>
-                            <option value="tiki">TIKI</option>
-                            <option value="pos">POS Indonesia</option>
-                        </select>
+                    
+                    <div class="form-group">
+                        <label for="shipping_phone">Nomor Telepon</label>
+                        <input type="text" class="form-control" id="shipping_phone" name="shipping_phone" value="{{ auth()->user()->phone ?? '' }}" required>
                     </div>
-                    <button id="check-ongkir" class="btn btn-secondary">Cek Ongkir</button>
-                    <div id="ongkir-results" class="mt-3"></div>
+                    
+                    <div class="form-group">
+                        <label for="shipping_note">Catatan Pengiriman (Opsional)</label>
+                        <textarea class="form-control" id="shipping_note" name="shipping_note" rows="2"></textarea>
+                    </div>
+                    
+                    <a href="{{ route('user.profile') }}" class="btn btn-link mt-2">Tambah/ubah alamat di profil</a>
                 </div>
             </div>
 
@@ -137,103 +156,8 @@ $(document).ready(function() {
         }
     });
 
-    // Real-time city search
-    $('#city-search').on('keyup', function() {
-        let searchTerm = $(this).val();
-        if (searchTerm.length < 3) {
-            $('#city-search-results').empty();
-            return;
-        }
-
-        $.ajax({
-            url: '{{ route("ongkir.search_cities") }}',
-            type: 'GET',
-            data: { q: searchTerm },
-            success: function(response) {
-                let results = response.rajaongkir.results;
-                $('#city-search-results').empty();
-                $.each(results, function(key, value) {
-                    $('#city-search-results').append(
-                        '<a href="#" class="list-group-item list-group-item-action city-option" data-id="' + value.city_id + '" data-name="' + value.city_name + '">' + value.type + ' ' + value.city_name + ', ' + value.province + '</a>'
-                    );
-                });
-            }
-        });
-    });
-
-    // Handle city selection from search results
-    $(document).on('click', '.city-option', function(e) {
-        e.preventDefault();
-        let cityId = $(this).data('id');
-        let cityName = $(this).data('name');
-        
-        $('#destination-city-id').val(cityId);
-        $('#city-search').val(cityName);
-        $('#city-search-results').empty();
-    });
-
-    // Handle check ongkir button click
-    $('#check-ongkir').on('click', function() {
-        let origin = '152'; // Example: Jakarta Selatan, needs to be dynamic from store address
-        let destination = $('#destination-city-id').val();
-        let weight = 1000; // Example weight in grams, needs to be dynamic from cart items
-        let courier = $('#courier').val();
-
-        if (destination && weight && courier) {
-            $.ajax({
-                url: '{{ route("ongkir.check") }}',
-                type: 'POST',
-                data: {
-                    origin: origin,
-                    destination: destination,
-                    weight: weight,
-                    courier: courier
-                },
-                success: function(response) {
-                    $('#ongkir-results').empty();
-                    if (response && response.rajaongkir && response.rajaongkir.results && response.rajaongkir.results.length > 0) {
-                        let costs = response.rajaongkir.results[0].costs;
-                        let html = '<h5>Pilih Layanan Pengiriman:</h5>';
-                        html += '<div class="list-group">';
-                        $.each(costs, function(key, cost) {
-                            let price = cost.cost[0].value;
-                            html += '<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center ongkir-option" data-cost="' + price + '">';
-                            html += '<div><strong>' + cost.service.toUpperCase() + '</strong><br><small>' + cost.description + ' ('+cost.cost[0].etd+' hari)</small></div>';
-                            html += '<span>Rp' + new Intl.NumberFormat('id-ID').format(price) + '</span>';
-                            html += '</a>';
-                        });
-                        html += '</div>';
-                        $('#ongkir-results').html(html);
-                    } else {
-                        var errorMessage = "Layanan tidak tersedia.";
-                        if (response && response.rajaongkir && response.rajaongkir.status) {
-                            errorMessage += " Pesan: " + response.rajaongkir.status.description;
-                        }
-                        $('#ongkir-results').html('<p class="text-danger">' + errorMessage + '</p>');
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                     $('#ongkir-results').html('<p class="text-danger">Gagal mengecek ongkir. Silakan coba lagi. (' + textStatus + ')</p>');
-                }
-            });
-        } else {
-            alert('Harap lengkapi semua pilihan pengiriman.');
-        }
-    });
-
-    // Handle ongkir option selection
-    $(document).on('click', '.ongkir-option', function(e) {
-        e.preventDefault();
-        $('.ongkir-option').removeClass('active');
-        $(this).addClass('active');
-
-        let shippingCost = $(this).data('cost');
-        let subtotal = {{ $order->total_amount }};
-        let totalAmount = subtotal + shippingCost;
-        
-        $('#total-amount-display').text('Rp' + new Intl.NumberFormat('id-ID').format(totalAmount));
-        $('#pay-button').prop('disabled', false).html('<i class="bi bi-credit-card"></i> Bayar Sekarang');
-    });
+    // Enable payment button by default since we removed ongkir
+    $('#pay-button').prop('disabled', false).html('<i class="bi bi-credit-card"></i> Bayar Sekarang');
 });
 </script>
 
@@ -266,7 +190,7 @@ document.getElementById('pay-button').addEventListener('click', function() {
             console.log('Payment popup closed');
             // Handle customer closed the popup without finishing payment
             document.getElementById('pay-button').disabled = false;
-            document.getElementById('pay-button').innerHTML = '<i class="bi bi-credit-card"></i> Pilih Pengiriman Dulu';
+            document.getElementById('pay-button').innerHTML = '<i class="bi bi-credit-card"></i> Bayar Sekarang';
         }
     });
 });

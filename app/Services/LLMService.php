@@ -10,12 +10,12 @@ class LLMService
     public function ask($userMessage, $context = null)
     {
         // System prompt untuk AI
-        $systemPrompt = "Kamu adalah PustakawanAI, asisten chatbot untuk website PustakaDigital. Jawablah semua pertanyaan dalam Bahasa Indonesia. Jika ada data dari database, gunakan data tersebut untuk menjawab. Jika tidak ada data, jawab dengan sopan dan informatif.";
+        $systemPrompt = "Kamu adalah PustakawanAI, asisten chatbot untuk website PustakaDigital. Jawablah semua pertanyaan dalam Bahasa Indonesia. Jika ada data dari database, gunakan data tersebut untuk menjawab. JANGAN PERNAH mengarang judul atau isi buku. Jika tidak ada data yang cocok, jawab: 'Maaf, kami tidak menemukan buku yang sesuai pencarian Anda.'";
 
         $userPrompt = "Pertanyaan Pengguna: \"{$userMessage}\"";
         if ($context) {
             $userPrompt .= "\n\n[DATA DARI DATABASE UNTUK DIJAWAB OLEH AI, JANGAN ABAIKAN!]\n{$context}\n[AKHIR DATA]";
-            $userPrompt .= "\nJawablah pertanyaan user HANYA berdasarkan data di atas. Jika tidak ada data yang cocok, katakan dengan sopan.";
+            $userPrompt .= "\nJawablah pertanyaan user HANYA berdasarkan data di atas. Jika tidak ada data yang cocok, jawab: 'Maaf, kami tidak menemukan buku yang sesuai pencarian Anda.'";
         }
 
         $finalPrompt = $systemPrompt . "\n\n" . $userPrompt;

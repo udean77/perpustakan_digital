@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Book;
+use App\Services\BookRecommendationService;
 
 class BookController extends Controller
 {
@@ -52,7 +53,7 @@ class BookController extends Controller
     }
 
     // Menampilkan detail buku
-    public function show($id)
+    public function show($id, BookRecommendationService $recommendationService)
     {
         $book = Book::with('store')->findOrFail($id);
 
@@ -63,6 +64,9 @@ class BookController extends Controller
             $isInWishlist = $user->wishlists()->where('book_id', $book->id)->exists();
         }
 
-        return view('user.books.show', compact('book', 'isInWishlist'));
+        // Get similar books
+        $similarBooks = $recommendationService->getSimilarBooks($book, 4);
+
+        return view('user.books.show', compact('book', 'isInWishlist', 'similarBooks'));
     }
 }

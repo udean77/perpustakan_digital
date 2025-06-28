@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cities', function (Blueprint $table) {
-            $table->integer('id')->primary();
-            $table->unsignedInteger('province_id');
-            $table->string('name');
-            $table->string('type');
-            $table->string('postal_code');
+        Schema::table('addresses', function (Blueprint $table) {
+            //
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cities');
+        Schema::table('addresses', function (Blueprint $table) {
+            //
+        });
     }
 };

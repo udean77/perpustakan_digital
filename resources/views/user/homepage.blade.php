@@ -39,9 +39,9 @@
                             <a href="#" class="btn btn-danger mt-3">Cek Promo</a>
                         </div>
                         <div class="carousel-item text-center p-5">
-                            <h1><strong>Gratis Ongkir!</strong></h1>
-                            <p>Untuk setiap pembelian minimal Rp150.000</p>
-                            <a href="#" class="btn btn-success mt-3">Belanja Sekarang</a>
+                            <h1><strong>Buku Terbaru!</strong></h1>
+                            <p>Dapatkan buku-buku terbaru dengan harga terbaik</p>
+                            <a href="#" class="btn btn-success mt-3">Lihat Koleksi</a>
                         </div>
                     </div>
                 </div>
@@ -92,6 +92,66 @@
                 <a href="{{ route('books.index') }}" class="btn btn-danger btn-sm rounded-pill px-4">View More</a>
             </div>
         </div>
+    </section>
+
+    <!-- Recommendations Section for Authenticated Users -->
+    @auth
+    @if($recommendations->count() > 0)
+    <section class="my-5">
+        <div class="container p-4 bg-gradient rounded-4 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-white fw-bold mb-0">
+                    <i class="fas fa-star"></i> Rekomendasi untuk Anda
+                </h2>
+                <a href="{{ route('user.preferences.index') }}" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-cog"></i> Atur Preferensi
+                </a>
+            </div>
+            <hr style="border: 2px solid rgba(255,255,255,0.3); width: 100%; margin: 0 auto 30px auto;">
+
+            <!-- Recommendations Grid -->
+            <div class="row g-3">
+                @foreach ($recommendations as $book)
+                    <div class="col-md-4 col-lg-2">
+                        <a href="{{ route('books.show', $book->id) }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                                <img src="{{ asset('storage/' . $book->cover) }}" class="card-img-top rounded-top" alt="Book Cover" style="height: 160px; object-fit: cover;">
+                                <div class="card-body px-2 py-3">
+                                    <h6 class="fw-semibold mb-1" style="font-size: 0.8rem;">{{ $book->title }}</h6>
+                                    <p class="text-muted mb-1" style="font-size: 0.75rem;">{{ $book->author }}</p>
+                                    
+                                    <!-- Rating -->
+                                    @if($book->reviews_avg_rating)
+                                        <div class="mb-1">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                @if($i <= $book->reviews_avg_rating)
+                                                    <i class="fas fa-star text-warning" style="font-size: 0.7rem;"></i>
+                                                @else
+                                                    <i class="far fa-star text-warning" style="font-size: 0.7rem;"></i>
+                                                @endif
+                                            @endfor
+                                            <small class="text-muted ms-1" style="font-size: 0.65rem;">{{ number_format($book->reviews_avg_rating, 1) }}</small>
+                                        </div>
+                                    @endif
+                                    
+                                    <p class="fw-bold mb-0 text-primary" style="font-size: 0.8rem;">Rp {{ number_format($book->price, 0, ',', '.') }}</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- View More Recommendations -->
+            <div class="text-center mt-4">
+                <a href="{{ route('books.index') }}" class="btn btn-light btn-sm rounded-pill px-4">
+                    <i class="fas fa-search"></i> Cari Lebih Banyak
+                </a>
+            </div>
+        </div>
+    </section>
+    @endif
+    @endauth
 
     <!-- JS -->
     <script src="{{ asset('js/auto.js') }}"></script>

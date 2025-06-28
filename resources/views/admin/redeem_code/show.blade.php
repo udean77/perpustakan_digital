@@ -35,8 +35,8 @@
                                             @case('cashback')
                                                 <span class="badge badge-warning">Cashback</span>
                                                 @break
-                                            @case('free_shipping')
-                                                <span class="badge badge-success">Gratis Ongkir</span>
+                                            @case('promo')
+                                                <span class="badge badge-success">Promo</span>
                                                 @break
                                         @endswitch
                                     </td>

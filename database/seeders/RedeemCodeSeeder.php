@@ -38,17 +38,6 @@ class RedeemCodeSeeder extends Seeder
                 'description' => 'Cashback Rp 50.000 untuk pembelian minimal Rp 200.000'
             ],
             [
-                'code' => 'GRATISONGKIR',
-                'type' => 'free_shipping',
-                'value' => 0,
-                'value_type' => 'fixed',
-                'max_usage' => 100,
-                'min_purchase' => 50000,
-                'valid_from' => Carbon::now(),
-                'valid_until' => Carbon::now()->addMonths(1),
-                'description' => 'Gratis ongkir untuk pembelian minimal Rp 50.000'
-            ],
-            [
                 'code' => 'DISKON25',
                 'type' => 'discount',
                 'value' => 25,

@@ -46,7 +46,7 @@
                                         <option value="">Pilih Tipe</option>
                                         <option value="discount" {{ $redeemCode->type == 'discount' ? 'selected' : '' }}>Diskon</option>
                                         <option value="cashback" {{ $redeemCode->type == 'cashback' ? 'selected' : '' }}>Cashback</option>
-                                        <option value="free_shipping" {{ $redeemCode->type == 'free_shipping' ? 'selected' : '' }}>Gratis Ongkir</option>
+                                        <option value="promo" {{ $redeemCode->type == 'promo' ? 'selected' : '' }}>Promo</option>
                                     </select>
                                 </div>
                             </div>

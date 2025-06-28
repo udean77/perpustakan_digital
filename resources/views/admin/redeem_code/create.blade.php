@@ -44,7 +44,7 @@
                                         <option value="">Pilih Tipe</option>
                                         <option value="discount" {{ old('type') == 'discount' ? 'selected' : '' }}>Diskon</option>
                                         <option value="cashback" {{ old('type') == 'cashback' ? 'selected' : '' }}>Cashback</option>
-                                        <option value="free_shipping" {{ old('type') == 'free_shipping' ? 'selected' : '' }}>Gratis Ongkir</option>
+                                        <option value="promo" {{ old('type') == 'promo' ? 'selected' : '' }}>Promo</option>
                                     </select>
                                 </div>
                             </div>

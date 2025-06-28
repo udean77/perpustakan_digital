@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Book;
+use App\Services\BookRecommendationService;
 
 class UserController extends Controller
 {
@@ -16,7 +17,7 @@ class UserController extends Controller
     //     $this->middleware('auth');
     // }
     
-    public function homepage()
+    public function homepage(BookRecommendationService $recommendationService)
     {
         $books = Book::with('store')
             ->where('status', 'active')
@@ -26,7 +27,15 @@ class UserController extends Controller
         ->latest()
         ->take(20)
         ->get();
-        return view('user.homepage',compact('books')); // pastikan view ini ada di resources/views/user/homepage.blade.php
+
+        // Get recommendations for authenticated users
+        $recommendations = collect();
+        if (Auth::check()) {
+            $user = Auth::user();
+            $recommendations = $recommendationService->getRecommendationsForUser($user, 6);
+        }
+
+        return view('user.homepage', compact('books', 'recommendations'));
     }
     
     /**

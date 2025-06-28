@@ -60,8 +60,8 @@
                                             @case('cashback')
                                                 <span class="badge badge-warning">Cashback</span>
                                                 @break
-                                            @case('free_shipping')
-                                                <span class="badge badge-success">Gratis Ongkir</span>
+                                            @case('promo')
+                                                <span class="badge badge-success">Promo</span>
                                                 @break
                                         @endswitch
                                     </td>
@@ -161,7 +161,7 @@
                                 <select class="form-control" id="type" name="type" required>
                                     <option value="discount">Diskon</option>
                                     <option value="cashback">Cashback</option>
-                                    <option value="free_shipping">Gratis Ongkir</option>
+                                    <option value="promo">Promo</option>
                                 </select>
                             </div>
                         </div>

@@ -240,8 +240,47 @@
 
 </div>
 
-
-
+<!-- Similar Books Section -->
+@if(isset($similarBooks) && $similarBooks->count() > 0)
+<div class="row mt-5">
+    <div class="col-12">
+        <h4 class="mb-4">
+            <i class="fas fa-book-open"></i> Buku Serupa
+        </h4>
+        <div class="row g-3">
+            @foreach($similarBooks as $similarBook)
+                <div class="col-md-3 col-sm-6">
+                    <a href="{{ route('books.show', $similarBook->id) }}" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm rounded-4 h-100">
+                            <img src="{{ asset('storage/' . $similarBook->cover) }}" class="card-img-top rounded-top" alt="Book Cover" style="height: 200px; object-fit: cover;">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-1">{{ $similarBook->title }}</h6>
+                                <p class="text-muted mb-1 small">{{ $similarBook->author }}</p>
+                                
+                                <!-- Rating -->
+                                @if($similarBook->reviews_avg_rating)
+                                    <div class="mb-2">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= $similarBook->reviews_avg_rating)
+                                                <i class="fas fa-star text-warning" style="font-size: 0.8rem;"></i>
+                                            @else
+                                                <i class="far fa-star text-warning" style="font-size: 0.8rem;"></i>
+                                            @endif
+                                        @endfor
+                                        <small class="text-muted ms-1">{{ number_format($similarBook->reviews_avg_rating, 1) }}</small>
+                                    </div>
+                                @endif
+                                
+                                <p class="fw-bold mb-0 text-primary">Rp {{ number_format($similarBook->price, 0, ',', '.') }}</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- Modal Share -->
 <!-- Modal Bagikan Buku -->

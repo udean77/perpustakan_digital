@@ -152,6 +152,7 @@
                     </li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="{{ route('user.profile') }}">Profile</a></li>
+                    <li><a class="dropdown-item" href="{{ route('user.preferences.index') }}">Preferensi Buku</a></li>
                     <li><a class="dropdown-item" href="{{ route('user.wishlist.index') }}">Wishlist</a></li>
                     <li><a class="dropdown-item" href="{{ route('user.reports.index') }}">Report</a></li>
                     <li><a class="dropdown-item" href="{{ route('user.transaction.index') }}">Transaksi</a></li>
