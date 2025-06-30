@@ -18,7 +18,7 @@
             <div class="col-sm-6 col-md-4 col-lg-3">
                 <div class="card h-100 shadow-sm">
                     <div class="text-center p-3">
-                         <img src="{{ $store && $store->logo ? asset('storage/store_logo/' . $book->store->logo) : asset('images/store_default.png') }}" class="rounded-circle me-3" width="80" height="80" alt="Logo Toko">
+                         <img src="{{ $store && $store->logo ? asset('storage/store_logo/' . $store->logo) : asset('images/store_default.png') }}" class="rounded-circle me-3" width="80" height="80" alt="Logo Toko">
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title fw-bold text-truncate" title="{{ $store->name }}">{{ $store->name }}</h5>

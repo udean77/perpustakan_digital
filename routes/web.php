@@ -34,14 +34,19 @@ use App\Http\Controllers\Admin\ChatHistoryController;
 use App\Http\Controllers\Admin\ChatAnalyticsController;
 use App\Http\Controllers\UserPreferenceController;
 use App\Http\Controllers\ChatController;
+use Illuminate\Support\Facades\Http;
 
 
-// Homepage publik
+// Homepage publik - bisa diakses tanpa login
+Route::get('/', [UserController::class, 'homepage'])->name('homepage');
 Route::get('/homepage', [UserController::class, 'homepage'])->name('user.homepage');
+
+// Store routes - bisa diakses tanpa login
+Route::get('/store/{id}', [StoreController::class, 'show'])->name('user.store.show');
+Route::get('/stores', [StoreController::class, 'index'])->name('user.store.index');
 
 Route::middleware(['auth'])->group(function () {
     // Profile
-    Route::get('/homepage', [UserController::class, 'homepage'])->name('user.homepage');
     Route::get('/profile', [ProfileController::class, 'showProfile'])->name('user.profile');
     Route::post('/become-seller', [UserController::class, 'becomeSeller'])->name('user.becomeSeller');
     Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('user.updateProfile');
@@ -56,8 +61,6 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/address/{id}', [AddressController::class, 'destroy'])->name('address.delete');
 
     // Route biasa
-    Route::get('/store/{id}', [StoreController::class, 'show'])->name('user.store.show');
-    Route::get('/stores', [StoreController::class, 'index'])->name('user.store.index');
 
 
     // untuk user buka toko
@@ -93,6 +96,7 @@ Route::middleware(['auth'])->group(function () {
     
     // Checkout
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout', [CheckoutController::class, 'index'])->name('checkout.index.post');
     Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
     Route::get('/checkout/buy-now/{book}', [CheckoutController::class, 'buyNowForm'])->name('checkout.buyNowForm');
     Route::post('/checkout/buy-now/process', [CheckoutController::class, 'processBuyNow'])->name('checkout.buyNowProcess');
@@ -236,10 +240,6 @@ Route::middleware(['auth', 'role:penjual', 'checkStoreActive'])->prefix('seller'
         
 });
 
-
-
-Route::get('/', [UserController::class, 'homepage']);
-Route::get('/homepage', [UserController::class, 'homepage'])->name('user.homepage');
 
 
 // Payment notification from Midtrans (no auth required)

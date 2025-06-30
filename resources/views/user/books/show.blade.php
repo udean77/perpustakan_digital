@@ -55,43 +55,57 @@
             <p class="small text-muted">{{ $book->store->address ?? 'Alamat tidak tersedia' }}</p>
 
             {{-- Form Kuantitas dan Aksi --}}
-            <form action="{{ route('cart.add', $book->id) }}" method="POST" class="mb-3">
-                @csrf
-                <div class="mb-2">
-                    <label for="quantity" class="form-label fw-semibold">Jumlah</label>
-                    <div class="input-group quantity-selector">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="changeQuantity(-1)">−</button>
-                        <input type="number" name="quantity" id="quantity" class="form-control text-center" value="1" min="1" max="{{ $book->stock }}">
-                        <button type="button" class="btn btn-outline-success btn-sm" onclick="changeQuantity(1)">+</button>
+            @auth
+                <form action="{{ route('cart.add', $book->id) }}" method="POST" class="mb-3">
+                    @csrf
+                    <div class="mb-2">
+                        <label for="quantity" class="form-label fw-semibold">Jumlah</label>
+                        <div class="input-group quantity-selector">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="changeQuantity(-1)">−</button>
+                            <input type="number" name="quantity" id="quantity" class="form-control text-center" value="1" min="1" max="{{ $book->stock }}">
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="changeQuantity(1)">+</button>
+                        </div>
+                        <small class="text-muted d-block mt-1">Stok Tersedia: {{ $book->stock }}</small>
                     </div>
-                    <small class="text-muted d-block mt-1">Stok Tersedia: {{ $book->stock }}</small>
+                    <button type="submit" class="btn btn-success w-100 fw-bold" {{ $book->stock < 1 ? 'disabled' : '' }}>
+                    + Keranjang
+                </button>
+                </form>
+            @else
+                <div class="mb-3">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Silakan <a href="{{ route('login') }}" class="alert-link">login</a> untuk menambahkan buku ke keranjang
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-success w-100 fw-bold" {{ $book->stock < 1 ? 'disabled' : '' }}>
-                + Keranjang
-            </button>
-            </form>
+            @endauth
             
 
 
 
             {{-- Wishlist & Aksi Tambahan --}}
             <div class="d-flex justify-content-between align-items-center text-muted small mt-3">
-                @if ($book->store)
-                <div class="btn btn-success btn-sm"
-                    onclick="window.open('https://wa.me/{{ $book->store->phone }}?text=Halo%20saya%20tertarik%20dengan%20buku%20{{ urlencode($book->title) }}', '_blank')"
+                <div role="button"
+                    onclick="window.open('https://wa.me/{{ $book->store->phone ?? '' }}?text=Halo%20saya%20tertarik%20dengan%20buku%20{{ urlencode($book->title) }}', '_blank')"
+                    class="btn btn-success btn-sm"
                     style="cursor:pointer;">
                     <i class="bi bi-whatsapp me-1"></i> Chat via WhatsApp
                 </div>
-                @endif
 
                 <div class="vr mx-2"></div>
 
-                 <form action="{{ route('user.wishlist.toggle', $book->id) }}" method="POST" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn btn-link text-decoration-none p-0 text-muted fw-semibold">
-                        <i class="bi {{ $isInWishlist ? 'bi-heart-fill text-danger' : 'bi-heart' }} me-1"></i> Wishlist
-                    </button>
-                </form>
+                @auth
+                    <form action="{{ route('user.wishlist.toggle', $book->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-link text-decoration-none p-0 text-muted fw-semibold">
+                            <i class="bi {{ $isInWishlist ? 'bi-heart-fill text-danger' : 'bi-heart' }} me-1"></i> Wishlist
+                        </button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="btn btn-link text-decoration-none p-0 text-muted fw-semibold">
+                        <i class="bi bi-heart me-1"></i> Wishlist
+                    </a>
+                @endauth
 
                 <div class="vr mx-2"></div>
 
@@ -104,31 +118,36 @@
 
         </div>
     </div>
-
-    @if($book->store)
     <div class="d-flex align-items-center justify-content-between border rounded p-4 mt-4 bg-white">
         <div class="d-flex align-items-center">
             {{-- Logo Toko --}}
-            <img src="{{ $book->store && $book->store->logo ? asset('storage/store_logo/' . $book->store->logo) : asset('images/store_default.png') }}"
+            <img src="{{ $book->store && $book->store->logo ? asset('storage/store_logo/' . $book->store->logo) : asset('images/store_default.png') }}" 
                 class="rounded-circle me-3" width="80" height="80" alt="Logo Toko">
 
             <div>
                 {{-- Nama Toko (klik untuk lihat detail) --}}
                 <h5 class="mb-0 fw-bold">
-                    <a href="{{ route('user.store.show', $book->store->id) }}" class="text-decoration-none text-dark">
-                        {{ $book->store->name }}
-                    </a>
+                    @if($book->store)
+                        <a href="{{ route('user.store.show', $book->store->id) }}" class="text-decoration-none text-dark">
+                            {{ $book->store->name }}
+                        </a>
+                    @else
+                        <span class="text-muted">Toko Tidak Diketahui</span>
+                    @endif
                 </h5>
                 <small class="text-muted">{{ $book->store->address ?? 'Lokasi tidak tersedia' }}</small>
             </div>
         </div>
 
         {{-- Tombol Lihat --}}
-        <a href="{{ route('user.store.show', $book->store->id) }}" class="btn btn-outline-success rounded-pill px-4 fw-semibold">
-            Lihat
-        </a>
+        @if($book->store)
+            <a href="{{ route('user.store.show', $book->store->id) }}" class="btn btn-outline-success rounded-pill px-4 fw-semibold">
+                Lihat
+            </a>
+        @else
+            <span class="text-muted">Toko tidak tersedia</span>
+        @endif
     </div>
-    @endif
 
 
 
@@ -240,47 +259,8 @@
 
 </div>
 
-<!-- Similar Books Section -->
-@if(isset($similarBooks) && $similarBooks->count() > 0)
-<div class="row mt-5">
-    <div class="col-12">
-        <h4 class="mb-4">
-            <i class="fas fa-book-open"></i> Buku Serupa
-        </h4>
-        <div class="row g-3">
-            @foreach($similarBooks as $similarBook)
-                <div class="col-md-3 col-sm-6">
-                    <a href="{{ route('books.show', $similarBook->id) }}" class="text-decoration-none">
-                        <div class="card border-0 shadow-sm rounded-4 h-100">
-                            <img src="{{ asset('storage/' . $similarBook->cover) }}" class="card-img-top rounded-top" alt="Book Cover" style="height: 200px; object-fit: cover;">
-                            <div class="card-body">
-                                <h6 class="fw-semibold mb-1">{{ $similarBook->title }}</h6>
-                                <p class="text-muted mb-1 small">{{ $similarBook->author }}</p>
-                                
-                                <!-- Rating -->
-                                @if($similarBook->reviews_avg_rating)
-                                    <div class="mb-2">
-                                        @for($i = 1; $i <= 5; $i++)
-                                            @if($i <= $similarBook->reviews_avg_rating)
-                                                <i class="fas fa-star text-warning" style="font-size: 0.8rem;"></i>
-                                            @else
-                                                <i class="far fa-star text-warning" style="font-size: 0.8rem;"></i>
-                                            @endif
-                                        @endfor
-                                        <small class="text-muted ms-1">{{ number_format($similarBook->reviews_avg_rating, 1) }}</small>
-                                    </div>
-                                @endif
-                                
-                                <p class="fw-bold mb-0 text-primary">Rp {{ number_format($similarBook->price, 0, ',', '.') }}</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            @endforeach
-        </div>
-    </div>
-</div>
-@endif
+
+
 
 <!-- Modal Share -->
 <!-- Modal Bagikan Buku -->

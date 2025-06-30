@@ -43,60 +43,10 @@
         </tbody>
     </table>
 
-    @php
-        $subtotal = $order->items->sum(function($item) {
-            return $item->price * $item->quantity;
-        });
-    @endphp
-
     <div class="text-end">
-        <h5>Subtotal: Rp {{ number_format($subtotal, 0, ',', '.') }}</h5>
-        <h5>Diskon: 
-            @if($order->discount_amount > 0)
-                <span class="text-success">-Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</span>
-                @if($order->redeemCode)
-                    <small class="text-muted">({{ $order->redeemCode->code }})</small>
-                @endif
-            @else
-                Rp 0
-            @endif
-        </h5>
         <h5>Total: Rp {{ number_format($order->total_amount, 0, ',', '.') }}</h5>
     </div>
 
-    {{-- Informasi Kode Redeem --}}
-    @if($order->redeemCode)
-    <div class="card mt-3">
-        <div class="card-header">
-            <h5>Informasi Kode Redeem</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Kode:</strong> <code style="padding: 4px 8px; border: 1px solid #dee2e6; background-color: #f8f9fa; color: #495057; border-radius: 4px; font-weight: 600; font-size: 14px;">{{ $order->redeemCode->code }}</code></p>
-                    <p><strong>Tipe:</strong> {{ ucfirst($order->redeemCode->type) }}</p>
-                    <p><strong>Nilai:</strong> 
-                        @if($order->redeemCode->value_type === 'percentage')
-                            {{ $order->redeemCode->value }}%
-                        @else
-                            Rp{{ number_format($order->redeemCode->value, 0, ',', '.') }}
-                        @endif
-                    </p>
-                </div>
-                <div class="col-md-6">
-                    <p><strong>Diskon Diterima:</strong> <span class="text-success">Rp{{ number_format($order->discount_amount, 0, ',', '.') }}</span></p>
-                    <p><strong>Deskripsi:</strong> {{ $order->redeemCode->description ?? '-' }}</p>
-                    <p><strong>Status:</strong> 
-                        <span class="badge bg-{{ $order->redeemCode->status === 'active' ? 'success' : 'danger' }}">
-                            {{ ucfirst($order->redeemCode->status) }}
-                        </span>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <a href="{{ route('admin.transaction.index') }}" class="btn btn-secondary mt-3">Kembali ke Daftar Transaksi</a>
+    <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary mt-3">Kembali ke Daftar Pesanan</a>
 </div>
 @endsection

@@ -22,19 +22,60 @@ class PaymentController extends Controller
     public function createPayment(Request $request, $orderId)
     {
         try {
-            $order = Order::with(['user', 'items.book'])->findOrFail($orderId);
+            \Log::info('Payment creation started', ['order_id' => $orderId]);
+            
+            // Load order with all necessary relationships
+            $order = Order::with([
+                'user', 
+                'items.book', 
+                'items.book.store',
+                'address',
+                'redeemCode'
+            ])->findOrFail($orderId);
+            
+            \Log::info('Order loaded', [
+                'order_id' => $order->id,
+                'user_id' => $order->user_id,
+                'auth_user_id' => auth()->id(),
+                'items_count' => $order->items->count(),
+                'total_amount' => $order->total_amount,
+                'has_address' => $order->address ? 'yes' : 'no',
+                'has_redeem_code' => $order->redeemCode ? 'yes' : 'no'
+            ]);
             
             // Check if order belongs to authenticated user
             if ($order->user_id !== auth()->id()) {
+                \Log::warning('Unauthorized access attempt', [
+                    'order_user_id' => $order->user_id,
+                    'auth_user_id' => auth()->id()
+                ]);
                 return redirect()->back()->with('error', 'Unauthorized access');
+            }
+
+            // Log order items details
+            foreach ($order->items as $item) {
+                \Log::info('Order item', [
+                    'item_id' => $item->id,
+                    'book_id' => $item->book_id,
+                    'book_title' => $item->book->title ?? 'No title',
+                    'book_type' => $item->book->book_type ?? 'No type',
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'has_book_relation' => $item->book ? 'yes' : 'no'
+                ]);
             }
 
             // Create Snap Token
             $snapToken = $this->midtransService->createSnapToken($order);
+            
+            \Log::info('Snap token created', ['snap_token' => $snapToken ? 'generated' : 'null']);
 
             return view('user.payment.checkout', compact('order', 'snapToken'));
         } catch (\Exception $e) {
-            Log::error('Payment creation failed: ' . $e->getMessage());
+            Log::error('Payment creation failed: ' . $e->getMessage(), [
+                'order_id' => $orderId,
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->back()->with('error', 'Failed to create payment. Please try again.');
         }
     }
@@ -65,7 +106,9 @@ class PaymentController extends Controller
         try {
             $paymentStatus = $this->midtransService->getPaymentStatus($orderId);
             
-            if (isset($paymentStatus['transaction_status']) && ($paymentStatus['transaction_status'] === 'settlement' || $paymentStatus['transaction_status'] === 'capture')) {
+            if (isset($paymentStatus['transaction_status']) && 
+                ($paymentStatus['transaction_status'] === 'settlement' || 
+                 $paymentStatus['transaction_status'] === 'capture')) {
                 $order->update(['status' => 'selesai']);
                 return redirect()->route('user.transaction.index')
                     ->with('success', 'Pembayaran berhasil! Pesanan Anda telah selesai.');

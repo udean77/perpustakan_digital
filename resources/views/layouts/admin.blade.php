@@ -178,14 +178,6 @@
                     </a>
                 </li>
 
-
-                <!-- 💰 Manajemen kode redeem -->
-                <li class="sidebar-item">
-                    <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{{ route('admin.redeem_code.index') }}" aria-expanded="false">
-                        <i class="mdi mdi-cash"></i><span class="hide-menu">Manajemen kode redeem</span>
-                    </a>
-                </li>
-
                 <!-- 💰 Manajemen Transaksi / Keuangan -->
                 <li class="sidebar-item">
                     <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{{ route('admin.transaction.index') }}" aria-expanded="false">
@@ -200,29 +192,12 @@
                     </a>
                 </li>
 
-                <!-- 💬 Riwayat Chat User -->
-                <li class="sidebar-item">
-                    <a href="{{ url('/admin/chat-histories') }}" class="sidebar-link waves-effect waves-dark">
-                        <i class="mdi mdi-chat"></i><span class="hide-menu">Riwayat Chat User</span>
-                    </a>
-                </li>
-
-                <!-- 📊 Chat Analytics -->
-                <li class="sidebar-item">
-                    <a href="{{ route('admin.chat_analytics') }}" class="sidebar-link waves-effect waves-dark">
-                        <i class="mdi mdi-chart-line"></i><span class="hide-menu">Chat Analytics</span>
-                    </a>
-                </li>
-
             </ul>
         </nav>
         <!-- End Sidebar navigation -->
     </div>
     <!-- End Sidebar scroll-->
 </aside>
-
-<!-- Sidebar overlay for mobile -->
-<div class="sidebar-overlay"></div>
 
         <!-- ============================================================== -->
         <!-- End Left Sidebar - style you can find in sidebar.scss  -->
@@ -231,6 +206,27 @@
         <!-- Page wrapper  -->
         <!-- ============================================================== -->
         <div class="page-wrapper">
+            <!-- ============================================================== -->
+            <!-- Bread crumb and right sidebar toggle -->
+            <!-- ============================================================== -->
+            <div class="page-breadcrumb">
+                <div class="row">
+                    <div class="col-12 d-flex no-block align-items-center">
+                        <h4 class="page-title">Tables</h4>
+                        <div class="ml-auto text-right">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="#">Home</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Library</li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ============================================================== -->
+            <!-- End Bread crumb and right sidebar toggle -->
+            <!-- ============================================================== -->
             <!-- ============================================================== -->
             <!-- Container fluid  -->
             <!-- ============================================================== -->
@@ -296,91 +292,6 @@
          *       Basic Table                   *
          ****************************************/
         $('#zero_config').DataTable();
-        
-        // Fixed Navbar and Sidebar functionality
-        $(document).ready(function() {
-            // Handle mobile sidebar toggle
-            $('.nav-toggler').on('click', function(e) {
-                e.preventDefault();
-                $('aside.left-sidebar').toggleClass('show-sidebar');
-                $('.sidebar-overlay').toggleClass('show');
-            });
-            
-            // Close sidebar when clicking overlay
-            $('.sidebar-overlay').on('click', function() {
-                $('aside.left-sidebar').removeClass('show-sidebar');
-                $(this).removeClass('show');
-            });
-            
-            // Close sidebar when clicking outside on mobile
-            $(document).on('click', function(e) {
-                if ($(window).width() <= 767) {
-                    if (!$(e.target).closest('aside.left-sidebar, .nav-toggler').length) {
-                        $('aside.left-sidebar').removeClass('show-sidebar');
-                        $('.sidebar-overlay').removeClass('show');
-                    }
-                }
-            });
-            
-            // Handle window resize
-            $(window).on('resize', function() {
-                if ($(window).width() > 767) {
-                    $('aside.left-sidebar').removeClass('show-sidebar');
-                    $('.sidebar-overlay').removeClass('show');
-                }
-            });
-            
-            // Ensure proper scroll behavior
-            if (typeof PerfectScrollbar !== 'undefined') {
-                $('.scroll-sidebar').each(function() {
-                    new PerfectScrollbar(this);
-                });
-            }
-            
-            // Add smooth scrolling to sidebar links
-            $('.sidebar-link').on('click', function() {
-                if ($(window).width() <= 767) {
-                    $('aside.left-sidebar').removeClass('show-sidebar');
-                    $('.sidebar-overlay').removeClass('show');
-                }
-            });
-            
-            // Add active class to current page
-            var currentPath = window.location.pathname;
-            $('.sidebar-link').each(function() {
-                var href = $(this).attr('href');
-                if (href && currentPath.includes(href.split('/').pop())) {
-                    $(this).addClass('active');
-                }
-            });
-            
-            // Handle mini sidebar toggle
-            $('.sidebartoggler').on('click', function() {
-                $('body').toggleClass('mini-sidebar');
-                if ($('body').hasClass('mini-sidebar')) {
-                    $('.page-wrapper').css('margin-left', '70px');
-                } else {
-                    $('.page-wrapper').css('margin-left', '260px');
-                }
-            });
-            
-            // Ensure proper height for content
-            function adjustContentHeight() {
-                var windowHeight = $(window).height();
-                var navbarHeight = 70;
-                var contentHeight = windowHeight - navbarHeight;
-                $('.page-wrapper').css('min-height', contentHeight + 'px');
-            }
-            
-            // Call on load and resize
-            adjustContentHeight();
-            $(window).on('resize', adjustContentHeight);
-            
-            // Smooth scroll to top
-            $('html, body').animate({
-                scrollTop: 0
-            }, 300);
-        });
     </script>
     <form id="keluar-app" action="{{ route('logout') }}" method="post" class="d-none">
         @csrf

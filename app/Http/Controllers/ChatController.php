@@ -10,192 +10,242 @@ use App\Models\RedeemCode;
 use App\Models\ChatHistory;
 use App\Models\ChatAnalytics;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
     public function chat(Request $request, LLMService $llm, BookRecommendationService $recommendationService)
     {
-        $startTime = microtime(true);
-        $userMessage = $request->input('message');
-        $context = null;
-        $detectedIntent = null;
-        $queryType = null;
-
-        // Track session
-        $sessionId = Session::get('chat_session_id', uniqid());
-        Session::put('chat_session_id', $sessionId);
-
-        // Get or create analytics record
-        $analytics = ChatAnalytics::where('session_id', $sessionId)->first();
-        if (!$analytics) {
-            $analytics = ChatAnalytics::create([
-                'user_id' => auth()->id(),
-                'session_id' => $sessionId,
-                'started_at' => now(),
-                'user_agent' => $request->header('User-Agent'),
-                'ip_address' => $request->ip(),
-                'message_count' => 0
-            ]);
-        }
-
-        // Deteksi pertanyaan tentang kode redeem/promo
-        $redeemKeywords = ['kode redeem', 'kode promo', 'diskon', 'voucher', 'promo'];
-        $isRedeemQuery = false;
-        foreach ($redeemKeywords as $keyword) {
-            if (stripos($userMessage, $keyword) !== false) {
-                $isRedeemQuery = true;
-                $detectedIntent = 'redeem_code';
-                $queryType = 'promo_inquiry';
-                break;
-            }
-        }
-
-        // Deteksi pertanyaan tentang best seller, ebook, fisik, dan kategori
-        $isBestSeller = stripos($userMessage, 'best seller') !== false;
-        $isEbook = stripos($userMessage, 'ebook') !== false;
-        $isFisik = stripos($userMessage, 'fisik') !== false;
-        $categoriesList = ['fiksi', 'non-fiksi', 'pendidikan', 'novel', 'komik'];
-        $categoryDetected = null;
-        foreach ($categoriesList as $cat) {
-            if (stripos($userMessage, $cat) !== false) {
-                $categoryDetected = $cat;
-                $detectedIntent = 'book_search';
-                $queryType = 'category_search';
-                break;
-            }
-        }
-
-        // Deteksi pertanyaan tentang buku
-        $bookKeywords = ['buku', 'cari', 'judul', 'penulis', 'pengarang', 'novel', 'komik', 'tersedia', 'rekomendasi'];
-        $isBookQuery = false;
-        foreach ($bookKeywords as $keyword) {
-            if (stripos($userMessage, $keyword) !== false) {
-                $isBookQuery = true;
-                if (!$detectedIntent) {
-                    $detectedIntent = 'book_search';
-                    $queryType = 'general_search';
-                }
-                break;
-            }
-        }
-
-        // Deteksi permintaan rekomendasi
-        $recommendationKeywords = ['rekomendasi', 'saran', 'bagus', 'terbaik', 'populer'];
-        $isRecommendationQuery = false;
-        foreach ($recommendationKeywords as $keyword) {
-            if (stripos($userMessage, $keyword) !== false) {
-                $isRecommendationQuery = true;
-                $detectedIntent = 'book_recommendation';
-                $queryType = 'recommendation_request';
-                break;
-            }
-        }
-
-        if ($isRedeemQuery) {
-            $redeems = RedeemCode::where('status', 'active')->get(['code', 'description', 'valid_until']);
-            if ($redeems->count() > 0) {
-                $redeemList = $redeems->map(function($r) {
-                    return "- Kode: {$r->code}, Keterangan: {$r->description}, Expired: {$r->valid_until}";
-                })->join("\n");
-                $context = "Kode redeem aktif di database:\n" . $redeemList;
-            } else {
-                $context = "Tidak ada kode redeem aktif saat ini.";
-            }
-        } else if ($isRecommendationQuery && auth()->check()) {
-            // Berikan rekomendasi otomatis berdasarkan preferensi user
-            $user = auth()->user();
-            $recommendations = $recommendationService->getRecommendationsForUser($user, 3);
+        // Set PHP timeout to 120 seconds
+        set_time_limit(120);
+        
+        try {
+            $startTime = microtime(true);
+            $userMessage = $request->input('message');
             
-            if ($recommendations->count() > 0) {
-                $recommendationList = $recommendations->map(function($book) {
-                    $rating = $book->reviews_avg_rating ? number_format($book->reviews_avg_rating, 1) : 'Belum ada rating';
-                    return "- {$book->title} oleh {$book->author} (⭐ {$rating}, Rp" . number_format($book->price) . ")";
-                })->join("\n");
-                $context = "Berdasarkan preferensi Anda, berikut rekomendasi buku:\n" . $recommendationList;
-            } else {
-                $context = "Berikut beberapa buku populer yang mungkin Anda sukai:\n";
-                $popularBooks = $recommendationService->getPopularBooks(3);
-                $popularList = $popularBooks->map(function($book) {
-                    $rating = $book->reviews_avg_rating ? number_format($book->reviews_avg_rating, 1) : 'Belum ada rating';
-                    return "- {$book->title} oleh {$book->author} (⭐ {$rating}, Rp" . number_format($book->price) . ")";
-                })->join("\n");
-                $context .= $popularList;
+            // Validate input
+            if (empty($userMessage)) {
+                return response()->json(['error' => 'Message is required'], 400);
             }
-        } else if ($isBookQuery || $isBestSeller || $isEbook || $isFisik || $categoryDetected) {
-            $query = Book::query();
-            if ($isBestSeller) {
-                $query->orderBy('stock', 'desc');
-                $queryType = 'best_seller_search';
+            
+            Log::info('Chat request received', [
+                'message' => $userMessage,
+                'user_id' => auth()->id(),
+                'user_agent' => $request->header('User-Agent')
+            ]);
+            
+            // Enhanced context detection for database queries
+            $context = null;
+            $detectedIntent = null;
+            $queryType = null;
+
+            // Track session
+            $sessionId = Session::get('chat_session_id', uniqid());
+            Session::put('chat_session_id', $sessionId);
+
+            // Reset session for fresh conversation (optional - uncomment if you want each message to be independent)
+            // Session::forget('chat_session_id');
+            // $sessionId = uniqid();
+            // Session::put('chat_session_id', $sessionId);
+
+            // Get or create analytics record
+            try {
+                $analytics = ChatAnalytics::where('session_id', $sessionId)->first();
+                if (!$analytics) {
+                    $analytics = ChatAnalytics::create([
+                        'user_id' => auth()->id(),
+                        'session_id' => $sessionId,
+                        'started_at' => now(),
+                        'user_agent' => $request->header('User-Agent'),
+                        'ip_address' => $request->ip(),
+                        'message_count' => 0
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Failed to create analytics record: ' . $e->getMessage());
+                // Continue without analytics
             }
-            if ($isEbook) {
-                $query->where('book_type', 'ebook');
-                $queryType = 'ebook_search';
-            }
-            if ($isFisik) {
-                $query->where('book_type', 'physical');
-                $queryType = 'physical_book_search';
-            }
-            if ($categoryDetected) {
-                $query->where('category', $categoryDetected);
-                $queryType = 'category_search';
-            }
-            $specific = false;
-            foreach (['judul', 'penulis', 'pengarang', 'cari', 'karya'] as $spec) {
-                if (stripos($userMessage, $spec) !== false) {
-                    $specific = true;
-                    $queryType = 'specific_search';
-                    break;
+
+            // Check for book-related queries
+            if (stripos($userMessage, 'buku') !== false || stripos($userMessage, 'cari') !== false || stripos($userMessage, 'apa') !== false) {
+                try {
+                    // Get books with store information
+                    $books = Book::with('store')
+                                ->where('status', 'active')
+                                ->where('stock', '>', 0)
+                                ->limit(5)
+                                ->get(['id', 'title', 'author', 'price', 'category', 'book_type', 'stock', 'store_id']);
+                    
+                    if ($books->count() > 0) {
+                        $bookList = $books->map(function($book) {
+                            $storeName = $book->store ? $book->store->name : 'Toko tidak tersedia';
+                            return "{$book->title}\n   Penulis: {$book->author}\n   Harga: Rp" . number_format($book->price) . "\n   Kategori: {$book->category}\n   Toko: {$storeName}\n   Stok: {$book->stock}";
+                        })->join("\n\n");
+                        
+                        $context = "BUKU YANG TERSEDIA DI DATABASE:\n\n" . $bookList;
+                        $detectedIntent = 'book_search';
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to search books: ' . $e->getMessage());
                 }
             }
-            if ($specific) {
-                $query->where(function($q) use ($userMessage) {
-                    $q->where('title', 'like', "%{$userMessage}%")
-                      ->orWhere('author', 'like', "%{$userMessage}%");
-                });
-            }
-            $books = $query->limit(3)->get(['id', 'title', 'author', 'price', 'stock', 'book_type', 'category']);
-            if ($books->count() > 0) {
-                $bookList = $books->map(function($book) {
-                    return "- Judul: {$book->title}, Penulis: {$book->author}, Harga: Rp" . number_format($book->price) . ", Stok: {$book->stock}, Jenis: {$book->book_type}, Kategori: {$book->category}";
-                })->join("\n");
-                $context = "Ditemukan data buku yang relevan di database (tampilkan maksimal 3 buku saja, jawab singkat):\n" . $bookList;
-            } else {
-                if ($categoryDetected) {
-                    $context = "Buku dengan kategori tersebut belum tersedia di database.";
-                } else {
-                    $context = null; // Tidak ada buku yang cocok
+
+            // Check for category queries
+            if (stripos($userMessage, 'kategori') !== false || stripos($userMessage, 'jenis') !== false) {
+                try {
+                    $categories = Book::where('status', 'active')
+                                     ->where('stock', '>', 0)
+                                     ->distinct()
+                                     ->pluck('category')
+                                     ->filter()
+                                     ->values();
+                    
+                    if ($categories->count() > 0) {
+                        $categoryList = $categories->map(function($category) {
+                            $count = Book::where('category', $category)
+                                       ->where('status', 'active')
+                                       ->where('stock', '>', 0)
+                                       ->count();
+                            return "{$category}\n   Jumlah buku: {$count}";
+                        })->join("\n\n");
+                        
+                        $context = "KATEGORI BUKU YANG TERSEDIA:\n\n" . $categoryList;
+                        $detectedIntent = 'category_search';
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to get categories: ' . $e->getMessage());
                 }
             }
+
+            // Check for store queries
+            if (stripos($userMessage, 'toko') !== false || stripos($userMessage, 'penjual') !== false || stripos($userMessage, 'store') !== false) {
+                try {
+                    $stores = \App\Models\Store::where('status', 'active')
+                                              ->withCount(['books' => function($query) {
+                                                  $query->where('status', 'active')->where('stock', '>', 0);
+                                              }])
+                                              ->limit(5)
+                                              ->get(['id', 'name', 'description']);
+                    
+                    if ($stores->count() > 0) {
+                        $storeList = $stores->map(function($store) {
+                            return "{$store->name}\n   Jumlah buku: {$store->books_count}\n   Deskripsi: {$store->description}";
+                        })->join("\n\n");
+                        
+                        $context = "TOKO/PENJUAL YANG TERSEDIA:\n\n" . $storeList;
+                        $detectedIntent = 'store_search';
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to get stores: ' . $e->getMessage());
+                }
+            }
+
+            // Check for general database info queries
+            if (stripos($userMessage, 'database') !== false || stripos($userMessage, 'tersedia') !== false || stripos($userMessage, 'apa saja') !== false) {
+                try {
+                    $totalBooks = Book::where('status', 'active')->where('stock', '>', 0)->count();
+                    $totalStores = \App\Models\Store::where('status', 'active')->count();
+                    $totalCategories = Book::where('status', 'active')->where('stock', '>', 0)->distinct()->count('category');
+                    
+                    $context = "INFORMASI DATABASE PUSTAKADIGITAL:\n\n";
+                    $context .= "Total buku aktif: {$totalBooks}\n";
+                    $context .= "Total toko aktif: {$totalStores}\n";
+                    $context .= "Total kategori: {$totalCategories}\n\n";
+                    
+                    // Add sample books
+                    $sampleBooks = Book::where('status', 'active')->where('stock', '>', 0)->limit(3)->get(['title', 'author', 'category']);
+                    if ($sampleBooks->count() > 0) {
+                        $context .= "CONTOH BUKU YANG TERSEDIA:\n\n";
+                        $context .= $sampleBooks->map(function($book) {
+                            return "{$book->title}\n   Penulis: {$book->author}\n   Kategori: {$book->category}";
+                        })->join("\n\n");
+                    }
+                    
+                    $detectedIntent = 'database_info';
+                } catch (\Exception $e) {
+                    Log::warning('Failed to get database info: ' . $e->getMessage());
+                }
+            }
+
+            // Check for redeem code queries
+            if (stripos($userMessage, 'redeem') !== false || stripos($userMessage, 'kode') !== false || stripos($userMessage, 'voucher') !== false || stripos($userMessage, 'diskon') !== false || stripos($userMessage, 'promo') !== false) {
+                try {
+                    $redeemCodes = RedeemCode::where('status', 'active')
+                                            ->where('expired_at', '>', now())
+                                            ->where('usage_limit', '>', 'used_count')
+                                            ->limit(3)
+                                            ->get(['code', 'discount_amount', 'discount_type', 'min_purchase', 'expired_at', 'usage_limit', 'used_count']);
+                    
+                    if ($redeemCodes->count() > 0) {
+                        $codeList = $redeemCodes->map(function($code) {
+                            $remainingUses = $code->usage_limit - $code->used_count;
+                            $discountText = $code->discount_type === 'percentage' ? "{$code->discount_amount}%" : "Rp" . number_format($code->discount_amount);
+                            $minPurchaseText = $code->min_purchase > 0 ? "Min. pembelian: Rp" . number_format($code->min_purchase) : "Tidak ada minimum pembelian";
+                            $expiredDate = $code->expired_at->format('d/m/Y H:i');
+                            
+                            return "{$code->code}\n   Diskon: {$discountText}\n   {$minPurchaseText}\n   Berlaku sampai: {$expiredDate}\n   Sisa penggunaan: {$remainingUses}";
+                        })->join("\n\n");
+                        
+                        $context = "KODE REDEEM/VOUCHER YANG TERSEDIA:\n\n" . $codeList;
+                        $detectedIntent = 'redeem_code_search';
+                    } else {
+                        $context = "INFORMASI KODE REDEEM:\n\nSaat ini tidak ada kode redeem yang aktif. Kode redeem biasanya memberikan diskon atau cashback untuk pembelian buku. Silakan cek kembali nanti atau hubungi admin untuk informasi lebih lanjut.";
+                        $detectedIntent = 'redeem_code_info';
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to get redeem codes: ' . $e->getMessage());
+                }
+            }
+            
+            // Send to LLMService
+            Log::info('Sending to LLMService', ['context_length' => strlen($context ?? '')]);
+            $response = $llm->ask($userMessage, $context);
+            
+            // Calculate response time
+            $responseTime = round((microtime(true) - $startTime) * 1000);
+            
+            // Update analytics
+            try {
+                if (isset($analytics)) {
+                    $analytics->update([
+                        'intent_type' => $detectedIntent,
+                        'query_type' => $queryType,
+                        'response_time_ms' => $responseTime,
+                        'message_count' => $analytics->message_count + 1
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Failed to update analytics: ' . $e->getMessage());
+            }
+            
+            // Save chat history
+            try {
+                ChatHistory::create([
+                    'user_id' => auth()->id(),
+                    'message' => $userMessage,
+                    'intent' => $detectedIntent,
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Failed to save chat history: ' . $e->getMessage());
+            }
+            
+            Log::info('Chat response sent', ['response_length' => strlen($response)]);
+            return response()->json([
+                'success' => true,
+                'response' => $response
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Chat error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'user_id' => auth()->id()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'response' => 'Maaf, terjadi kesalahan dalam memproses pesan Anda.'
+            ], 500);
         }
-        
-        // Hanya tambahkan histori pencarian jika context ada data buku
-        if ($context && str_contains($context, 'Ditemukan data buku')) {
-            $history = ChatHistory::where('user_id', auth()->id())->latest()->take(5)->pluck('message')->toArray();
-            $context .= "\nHistori pencarian user: " . implode('; ', $history);
-        }
-        
-        // Kirim pesan dan konteks (jika ada) ke LLMService
-        $response = $llm->ask($userMessage, $context);
-        
-        // Calculate response time
-        $responseTime = round((microtime(true) - $startTime) * 1000);
-        
-        // Update analytics
-        $analytics->update([
-            'intent_type' => $detectedIntent,
-            'query_type' => $queryType,
-            'response_time_ms' => $responseTime,
-            'message_count' => $analytics->message_count + 1
-        ]);
-        
-        // Save chat history
-        ChatHistory::create([
-            'user_id' => auth()->id(),
-            'message' => $userMessage,
-            'intent' => $detectedIntent,
-        ]);
-        
-        return response()->json(['reply' => $response]);
     }
 
     /**

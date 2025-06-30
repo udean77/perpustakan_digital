@@ -1,7 +1,10 @@
+@auth
 <div id="chat-widget" class="chat-widget">
     <!-- Chat Toggle Button -->
     <div class="chat-toggle" id="chat-toggle">
-        <span>💬</span>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" fill="white"/>
+        </svg>
     </div>
     
     <!-- Chat Container -->
@@ -14,7 +17,7 @@
         <div class="chat-messages" id="chat-messages">
             <div class="message ai">
                 <div class="message-content">
-                    Halo! Saya adalah asisten AI PustakaDigital. Ada yang bisa saya bantu?
+                    Halo! Selamat datang di PustakaDigital. Saya siap membantu Anda menemukan buku yang Anda cari. Ada yang bisa saya bantu?
                 </div>
             </div>
         </div>
@@ -34,10 +37,15 @@
         
         <form class="chat-input-form" id="chat-form">
             <input type="text" id="chat-input" placeholder="Ketik pesan..." autocomplete="off" />
-            <button type="submit" id="chat-send">Kirim</button>
+            <button type="submit" id="chat-send">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+                </svg>
+            </button>
         </form>
     </div>
 </div>
+@endauth
 
 <style>
 .chat-widget {
@@ -45,24 +53,26 @@
     bottom: 20px;
     right: 20px;
     z-index: 1000;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 .chat-toggle {
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: black;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    transition: transform 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    border: none;
 }
 
 .chat-toggle:hover {
     transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .chat-toggle span {
@@ -77,11 +87,12 @@
     width: 350px;
     height: 500px;
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     display: none;
     flex-direction: column;
     overflow: hidden;
+    border: 1px solid #000;
 }
 
 .chat-container.active {
@@ -89,43 +100,54 @@
 }
 
 .chat-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: black;
     color: white;
-    padding: 15px;
+    padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-weight: 600;
 }
 
 .chat-header h3 {
     margin: 0;
     font-size: 16px;
+    font-weight: 600;
 }
 
 .chat-close {
     background: none;
     border: none;
     color: white;
-    font-size: 20px;
+    font-size: 24px;
     cursor: pointer;
     padding: 0;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.chat-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .chat-messages {
     flex: 1;
-    padding: 15px;
+    padding: 16px;
     overflow-y: auto;
-    background: #f8f9fa;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .message {
-    margin-bottom: 10px;
     display: flex;
+    margin-bottom: 8px;
 }
 
 .message.user {
@@ -133,154 +155,193 @@
 }
 
 .message-content {
-    max-width: 80%;
-    padding: 10px 12px;
-    border-radius: 15px;
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 18px;
     word-wrap: break-word;
     font-size: 14px;
+    line-height: 1.4;
+    position: relative;
 }
 
 .message.user .message-content {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: black;
     color: white;
+    border-bottom-right-radius: 4px;
 }
 
 .message.ai .message-content {
     background: white;
-    color: #333;
-    border: 1px solid #e0e0e0;
+    color: black;
+    border: 1px solid #000;
+    border-bottom-left-radius: 4px;
 }
 
 .chat-typing {
-    padding: 10px 15px;
+    padding: 12px 16px;
     background: white;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid #000;
 }
 
 .typing-dots {
-    color: #666;
+    color: #333;
     font-style: italic;
     font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .typing-dots::after {
     content: '';
-    animation: typing 1.5s infinite;
+    width: 4px;
+    height: 4px;
+    background: #333;
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
 }
 
 @keyframes typing {
-    0%, 20% { content: ''; }
-    40% { content: '.'; }
-    60% { content: '..'; }
-    80%, 100% { content: '...'; }
+    0%, 60%, 100% { 
+        opacity: 0.3;
+        transform: translateY(0);
+    }
+    30% { 
+        opacity: 1;
+        transform: translateY(-4px);
+    }
 }
 
 .chat-feedback {
-    padding: 10px 15px;
-    background: #f8f9fa;
-    border-top: 1px solid #e0e0e0;
+    padding: 12px 16px;
+    background: white;
+    border-top: 1px solid #000;
     text-align: center;
 }
 
 .feedback-text {
     font-size: 12px;
-    color: #666;
+    color: #333;
     margin-bottom: 8px;
 }
 
 .feedback-buttons {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .feedback-btn {
-    padding: 5px 12px;
-    border: 1px solid #ddd;
+    padding: 6px 16px;
+    border: 1px solid #000;
     background: white;
-    border-radius: 15px;
+    color: black;
+    border-radius: 16px;
     cursor: pointer;
     font-size: 12px;
     transition: all 0.2s;
 }
 
 .feedback-btn:hover {
-    background: #f0f0f0;
+    background: black;
+    color: white;
 }
 
-.feedback-btn.helpful {
-    background: #28a745;
-    color: white;
-    border-color: #28a745;
-}
-
-.feedback-btn.not-helpful {
-    background: #dc3545;
-    color: white;
-    border-color: #dc3545;
+.feedback-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .chat-input-form {
     display: flex;
-    padding: 15px;
+    padding: 12px 16px;
     background: white;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid #000;
+    gap: 8px;
+    align-items: center;
 }
 
 #chat-input {
     flex: 1;
-    padding: 10px 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #000;
     border-radius: 20px;
-    outline: none;
+    padding: 10px 16px;
     font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    background: white;
+    color: black;
 }
 
 #chat-input:focus {
-    border-color: #667eea;
+    border-color: #000;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
 #chat-send {
-    margin-left: 10px;
-    padding: 10px 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: black;
     color: white;
     border: none;
-    border-radius: 20px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    font-size: 14px;
+    transition: background-color 0.2s;
 }
 
 #chat-send:hover {
-    opacity: 0.9;
+    background: #333;
 }
 
 #chat-send:disabled {
-    opacity: 0.6;
+    background: #ccc;
     cursor: not-allowed;
 }
 
-@media (max-width: 768px) {
+/* Scrollbar styling */
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #000;
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #333;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
     .chat-container {
-        width: 300px;
-        height: 400px;
-        bottom: 70px;
-        right: 10px;
+        width: calc(100vw - 40px);
+        height: 60vh;
+        right: -10px;
     }
     
     .chat-toggle {
-        width: 50px;
-        height: 50px;
+        width: 56px;
+        height: 56px;
     }
     
     .chat-toggle span {
-        font-size: 20px;
+        font-size: 22px;
     }
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Chat widget loaded');
+    
     const chatToggle = document.getElementById('chat-toggle');
     const chatContainer = document.getElementById('chat-container');
     const chatClose = document.getElementById('chat-close');
@@ -291,16 +352,51 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatTyping = document.getElementById('chat-typing');
     const chatFeedback = document.getElementById('chat-feedback');
     
+    // Debug: Check if elements exist
+    console.log('Chat elements found:', {
+        toggle: !!chatToggle,
+        container: !!chatContainer,
+        form: !!chatForm,
+        input: !!chatInput,
+        messages: !!chatMessages
+    });
+    
     let currentSessionId = null;
     let lastAiMessage = null;
     
+    // Reset session on page load to start fresh conversation
+    function resetChatSession() {
+        console.log('Resetting chat session');
+        currentSessionId = null;
+        lastAiMessage = null;
+        
+        // Clear chat messages except the initial greeting
+        const messages = chatMessages.querySelectorAll('.message');
+        messages.forEach((message, index) => {
+            if (index > 0) { // Keep the first message (greeting)
+                message.remove();
+            }
+        });
+        
+        // Hide feedback
+        hideFeedback();
+        
+        // End previous session if exists
+        endChatSession();
+    }
+    
+    // Reset session when page loads
+    resetChatSession();
+    
     // Toggle chat
     chatToggle.addEventListener('click', function() {
+        console.log('Chat toggle clicked');
         chatContainer.classList.add('active');
         chatInput.focus();
     });
     
     chatClose.addEventListener('click', function() {
+        console.log('Chat close clicked');
         chatContainer.classList.remove('active');
         // End session when closing chat
         if (currentSessionId) {
@@ -314,6 +410,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const message = chatInput.value.trim();
         if (!message) return;
         
+        console.log('Sending message:', message);
+        
         // Add user message
         addMessage(message, true);
         chatInput.value = '';
@@ -323,21 +421,28 @@ document.addEventListener('DOMContentLoaded', function() {
         chatSend.disabled = true;
         
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            console.log('CSRF Token:', csrfToken);
+            
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': csrfToken
                 },
                 body: JSON.stringify({ message: message })
             });
             
+            console.log('Response status:', response.status);
+            
             const data = await response.json();
+            console.log('Response data:', data);
+            
             chatTyping.style.display = 'none';
             
-            if (data.reply) {
-                addMessage(data.reply, false);
-                lastAiMessage = data.reply;
+            if (data.success && data.response) {
+                addMessage(data.response, false);
+                lastAiMessage = data.response;
                 // Show feedback after AI response
                 setTimeout(() => {
                     showFeedback();
@@ -346,6 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 addMessage('Maaf, terjadi kesalahan dalam memproses pesan Anda.', false);
             }
         } catch (err) {
+            console.error('Chat error:', err);
             chatTyping.style.display = 'none';
             addMessage('Maaf, tidak dapat terhubung ke server. Pastikan Ollama berjalan.', false);
         } finally {
@@ -355,6 +461,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function addMessage(content, isUser) {
+        console.log('Adding message:', { content: content.substring(0, 50) + '...', isUser });
+        
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
         
@@ -399,11 +507,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function sendFeedback(wasHelpful) {
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             await fetch('/api/chat/feedback', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': csrfToken
                 },
                 body: JSON.stringify({ 
                     session_id: currentSessionId,
@@ -418,11 +527,12 @@ document.addEventListener('DOMContentLoaded', function() {
     async function endChatSession() {
         if (currentSessionId) {
             try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                 await fetch('/api/chat/end-session', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        'X-CSRF-TOKEN': csrfToken
                     },
                     body: JSON.stringify({ session_id: currentSessionId })
                 });
@@ -439,5 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
             endChatSession();
         }
     });
+    
+    console.log('Chat widget initialization complete');
 });
 </script> 

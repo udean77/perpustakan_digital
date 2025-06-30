@@ -38,20 +38,38 @@ if (wishlistForm) {
     });
 }
 
-// Kuantitas
-function changeQuantity(change) {
-    const qtyInput = document.getElementById('quantity');
-    const buyNowInput = document.getElementById('buy-now-quantity');
-    let qty = parseInt(qtyInput.value);
-    const max = parseInt(qtyInput.max);
-
-    qty += change;
-    if (qty < 1) qty = 1;
-    if (qty > max) qty = max;
-
-    qtyInput.value = qty;
-    if (buyNowInput) buyNowInput.value = qty;
+// Quantity selector functionality
+function changeQuantity(delta) {
+    const quantityInput = document.getElementById('quantity');
+    if (quantityInput) {
+        let currentValue = parseInt(quantityInput.value) || 1;
+        let newValue = currentValue + delta;
+        
+        // Ensure minimum value is 1
+        if (newValue < 1) {
+            newValue = 1;
+        }
+        
+        // Get max stock from the input's max attribute
+        const maxStock = parseInt(quantityInput.getAttribute('max')) || 999;
+        if (newValue > maxStock) {
+            newValue = maxStock;
+        }
+        
+        quantityInput.value = newValue;
+    }
 }
+
+// Initialize quantity selector when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInput = document.getElementById('quantity');
+    if (quantityInput) {
+        // Set initial value to 1 if empty
+        if (!quantityInput.value) {
+            quantityInput.value = 1;
+        }
+    }
+});
 
 // Modal Laporan
 ddocument.addEventListener('DOMContentLoaded', function () {

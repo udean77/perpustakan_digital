@@ -24,8 +24,6 @@
                     <th>Nama Pembeli</th>
                     <th>Nama Penjual</th>
                     <th>Jumlah</th>
-                    <th>Diskon</th>
-                    <th>Kode Redeem</th>
                     <th>Status</th>
                     <th>Aksi</th> {{-- Kolom aksi --}}
                 </tr>
@@ -42,21 +40,7 @@
                         <td>{{ $trx->created_at->format('d M Y') }}</td>
                         <td>{{ $trx->user->nama ?? '-' }}</td>
                         <td>{{ $sellerName }}</td>
-                        <td style="white-space: nowrap;">Rp {{ number_format($trx->total_amount, 0, ',', '.') }}</td>
-                        <td>
-                            @if($trx->discount_amount > 0)
-                                <span class="text-success" style="white-space: nowrap;">-Rp{{ number_format($trx->discount_amount, 0, ',', '.') }}</span>
-                            @else
-                                <span class="text-muted">Rp0</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($trx->redeemCode)
-                                <span class="badge" style="background-color: #1A592D; color: white;">{{ $trx->redeemCode->code }}</span>
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </td>
+                        <td>Rp {{ number_format($trx->total_amount, 0, ',', '.') }}</td>
                         <td>
                             <span class="badge bg-{{ 
                                 $trx->status === 'selesai' ? 'success' : 

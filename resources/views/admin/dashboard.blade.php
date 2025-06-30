@@ -5,36 +5,36 @@
 <div class="container-fluid mt-4">
     <h1 class="mb-4">Dashboard Admin</h1>
 
-    <div class="row mb-4">
+    <div class="row">
         <div class="col-md-3">
-            <div class="card text-white bg-primary mb-3">
-                <div class="card-body text-center">
-                    <h3 class="card-title mb-0">{{ $userCount }}</h3>
-                    <div class="small">Total Pengguna</div>
+            <div class="card text-bg-primary mb-3 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Buku</h5>
+                    <p class="card-text fs-4">{{ $bookCount }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-success mb-3">
-                <div class="card-body text-center">
-                    <h3 class="card-title mb-0">{{ $bookCount }}</h3>
-                    <div class="small">Total Buku</div>
+            <div class="card text-bg-success mb-3 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Pengguna</h5>
+                    <p class="card-text fs-4">{{ $userCount }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-info mb-3">
-                <div class="card-body text-center">
-                    <h3 class="card-title mb-0">{{ $sellerCount }}</h3>
-                    <div class="small">Total Penjual</div>
+            <div class="card text-bg-warning mb-3 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Penjual</h5>
+                    <p class="card-text fs-4">{{ $sellerCount }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-warning mb-3">
-                <div class="card-body text-center">
-                    <h3 class="card-title mb-0">{{ $storeCount }}</h3>
-                    <div class="small">Total Toko</div>
+            <div class="card text-bg-danger mb-3 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Toko</h5>
+                    <p class="card-text fs-4">{{ $storeCount }}</p>
                 </div>
             </div>
         </div>

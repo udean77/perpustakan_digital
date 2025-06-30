@@ -39,38 +39,8 @@
 
     <div class="card mb-4">
         <div class="card-body">
-            @php
-                $subtotal = $order->items->sum(function($item) {
-                    return $item->price * $item->quantity;
-                });
-            @endphp
-            
-            <div class="d-flex justify-content-between mb-2">
-                <span>Subtotal:</span>
-                <span>Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
-            </div>
-            
-            <div class="d-flex justify-content-between mb-2">
-                <span>Ongkos Kirim:</span>
-                <span class="text-info">Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
-            </div>
-            
-            @if($order->discount_amount > 0)
-            <div class="d-flex justify-content-between mb-2">
-                <span>Diskon:</span>
-                <span class="text-success">-Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</span>
-            </div>
-            @endif
-            
-            <hr>
-            
-            <div class="d-flex justify-content-between fw-bold">
-                <span>Total Keseluruhan:</span>
-                <span>Rp {{ number_format($order->total_amount, 0, ',', '.') }}</span>
-            </div>
-            
-            <p class="mt-3 mb-1"><strong>Alamat Pengiriman:</strong></p>
-            <p class="text-muted">{{ $order->shipping_address }}</p>
+            <p><strong>Total Keseluruhan:</strong> Rp {{ number_format($order->total_amount, 0, ',', '.') }}</p>
+            <p><strong>Alamat Pengiriman:</strong> {{ $order->shipping_address }}</p>
         </div>
     </div>
 

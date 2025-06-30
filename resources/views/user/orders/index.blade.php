@@ -20,6 +20,14 @@
         <div class="card-header bg-light fw-semibold">Rincian Pesanan</div>
         <div class="card-body">
             @if ($cartItems->isNotEmpty())
+                {{-- Debug info --}}
+                <div class="alert alert-info">
+                    <strong>Debug:</strong> Menampilkan {{ $cartItems->count() }} item(s)
+                    @if(request()->has('selected_items'))
+                        <br>Selected items: {{ implode(', ', request('selected_items')) }}
+                    @endif
+                </div>
+                
                 @foreach($cartItems as $item)
                     <div class="d-flex mb-3 p-2 border rounded shadow-sm">
                         <img src="{{ asset('storage/' . $item->book->cover) }}" 
@@ -41,36 +49,11 @@
                 <hr>
                 <div class="d-flex justify-content-between">
                     <span class="fw-medium">Subtotal</span>
-                    <span id="subtotal-amount" data-value="{{ $total }}">Rp {{ number_format($total, 0, ',', '.') }}</span>
+                    <span>Rp {{ number_format($total, 0, ',', '.') }}</span>
                 </div>
-
-                {{-- Ongkir Section --}}
-                @php
-                    $shippingCost = rand(10000, 30000);
-                @endphp
-                <div class="d-flex justify-content-between mt-2">
-                    <span class="fw-medium">Ongkos Kirim</span>
-                    <span id="shipping-cost" class="text-info">Rp {{ number_format($shippingCost, 0, ',', '.') }}</span>
-                </div>
-
-                {{-- Redeem Code Section --}}
-                <div class="mt-3">
-                    <label for="redeem-code-input" class="form-label">Punya kode redeem?</label>
-                    <div class="input-group">
-                        <input type="text" id="redeem-code-input" class="form-control" placeholder="Masukkan kode di sini">
-                        <button class="btn btn-outline-secondary" type="button" id="apply-redeem-code">Gunakan</button>
-                    </div>
-                    <div id="redeem-code-feedback" class="small mt-2"></div>
-                </div>
-
-                <div id="discount-row" class="d-flex justify-content-between mt-2">
-                    <span class="fw-medium">Diskon</span>
-                    <span id="discount-amount" class="text-success">- Rp 0</span>
-                </div>
-
                 <div class="d-flex justify-content-between fw-bold mt-2">
                     <span>Total</span>
-                    <span id="total-amount">Rp {{ number_format($total + $shippingCost, 0, ',', '.') }}</span>
+                    <span>Rp {{ number_format($total, 0, ',', '.') }}</span>
                 </div>
             @else
                 <div class="text-center text-muted">Tidak ada item dalam pesanan.</div>
@@ -81,8 +64,11 @@
     {{-- Form Checkout --}}
     <form action="{{ route('checkout.process') }}" method="POST">
         @csrf
-        <input type="hidden" name="redeem_code" id="applied_redeem_code" value="">
-        <input type="hidden" name="shipping_cost" value="{{ $shippingCost ?? 0 }}">
+
+        {{-- Hidden inputs untuk selected cart items --}}
+        @foreach($cartItems as $item)
+            <input type="hidden" name="selected_items[]" value="{{ $item->id }}">
+        @endforeach
 
         {{-- Alamat Pengiriman --}}
         <div class="card mb-4">
@@ -107,107 +93,38 @@
             </div>
         </div>
 
-        {{-- Metode Pembayaran Dihapus, pemilihan via Midtrans Snap --}}
+        {{-- Biaya Pengiriman --}}
+        <div class="card mb-4">
+            <div class="card-header">Biaya Pengiriman</div>
+            <div class="card-body">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="shipping_cost" value="15000" id="shipping_15000" checked>
+                    <label class="form-check-label" for="shipping_15000">
+                        Regular (1-3 hari) - Rp 15.000
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="shipping_cost" value="25000" id="shipping_25000">
+                    <label class="form-check-label" for="shipping_25000">
+                        Express (1 hari) - Rp 25.000
+                    </label>
+                </div>
+            </div>
+        </div>
 
-        <button type="submit" class="btn btn-primary w-100 py-2"
-            onclick="return confirm('Anda akan diarahkan ke halaman pembayaran aman. Pastikan semua data sudah benar.');">
-            Lanjutkan ke Pembayaran
+        {{-- Kode Redeem (Opsional) --}}
+        <div class="card mb-4">
+            <div class="card-header">Kode Redeem (Opsional)</div>
+            <div class="card-body">
+                <input type="text" name="redeem_code" class="form-control" placeholder="Masukkan kode redeem jika ada" value="{{ old('redeem_code') }}">
+                <small class="text-muted">Kode redeem dapat memberikan diskon pada pembelian Anda</small>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100"
+            onclick="return confirm('Apakah Anda yakin ingin melanjutkan pembayaran?') && confirm('Pastikan semua data sudah benar. Konfirmasi lagi untuk bayar!');">
+            Bayar Sekarang
         </button>
     </form>
 </div>
 @endsection
-
-@push('scripts')
-<script src="{{ asset('js/redeem-code.js') }}"></script>
-<script>
-    // Helper function to format numbers as currency
-    function number_format(number) {
-        return new Intl.NumberFormat('id-ID', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(number);
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const applyBtn = document.getElementById('apply-redeem-code');
-        const redeemInput = document.getElementById('redeem-code-input');
-        const feedbackDiv = document.getElementById('redeem-code-feedback');
-        const subtotalEl = document.getElementById('subtotal-amount');
-        const totalEl = document.getElementById('total-amount');
-        const discountRow = document.getElementById('discount-row');
-        const discountAmountEl = document.getElementById('discount-amount');
-        const checkoutForm = document.querySelector('form');
-        
-        let subtotal = parseFloat(subtotalEl.getAttribute('data-value'));
-        let shippingCost = {{ $shippingCost ?? 0 }};
-        let appliedCode = null;
-
-        // Initialize discount display
-        discountAmountEl.textContent = `- Rp 0`;
-        discountRow.style.display = 'flex';
-
-        // Update total calculation function
-        function updateTotal() {
-            let discount = 0;
-            if (appliedCode) {
-                const discountText = discountAmountEl.textContent;
-                discount = parseInt(discountText.replace(/[^\d]/g, '')) || 0;
-            }
-            const newTotal = subtotal + shippingCost - discount;
-            totalEl.textContent = `Rp ${number_format(newTotal)}`;
-            
-            // Update hidden input for shipping cost
-            const shippingCostInput = document.querySelector('input[name="shipping_cost"]');
-            if (shippingCostInput) {
-                shippingCostInput.value = shippingCost;
-            }
-        }
-
-        // Initial total calculation
-        updateTotal();
-
-        applyBtn.addEventListener('click', async function() {
-            const code = redeemInput.value.trim().toUpperCase();
-            if (!code) {
-                feedbackDiv.innerHTML = '<span class="text-danger">Silakan masukkan kode.</span>';
-                return;
-            }
-
-            this.disabled = true;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Mencari...';
-
-            const result = await window.redeemCodeManager.validateCode(code, subtotal);
-            
-            this.disabled = false;
-            this.innerHTML = 'Gunakan';
-            
-            if (result.success) {
-                appliedCode = result.data.code;
-                const discount = parseFloat(result.data.discount_amount);
-                
-                feedbackDiv.innerHTML = `<span class="text-success">✓ ${result.data.description || 'Kode berhasil diterapkan!'}</span>`;
-                discountAmountEl.textContent = `- Rp ${number_format(discount)}`;
-                discountRow.style.display = 'flex';
-                updateTotal();
-
-                // Update hidden input for the code
-                const hiddenInput = document.getElementById('applied_redeem_code');
-                hiddenInput.value = appliedCode;
-
-            } else {
-                appliedCode = null;
-                feedbackDiv.innerHTML = `<span class="text-danger">✗ ${result.message}</span>`;
-                discountAmountEl.textContent = `- Rp 0`;
-                discountRow.style.display = 'flex';
-                updateTotal();
-
-                // Clear hidden input if it exists
-                const hiddenInput = document.getElementById('applied_redeem_code');
-                if (hiddenInput) {
-                    hiddenInput.value = '';
-                }
-            }
-        });
-    });
-</script>
-@endpush

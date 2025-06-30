@@ -165,7 +165,7 @@ class MidtransService
         $paymentType = $notification['payment_type'];
         Log::info("Transaction status for Order ID {$orderId}: {$transactionStatus}");
 
-        if ($transactionStatus == 'settlement') {
+        if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
             $order->update(['status' => 'selesai', 'payment_method' => $paymentType]);
             Log::info("Order ID {$orderId} status updated to 'selesai' with payment method '{$paymentType}'");
         } elseif ($transactionStatus == 'pending') {
@@ -174,6 +174,9 @@ class MidtransService
         } elseif ($transactionStatus == 'cancel' || $transactionStatus == 'expire' || $transactionStatus == 'deny') {
             $order->update(['status' => 'dibatalkan', 'payment_method' => $paymentType]);
             Log::info("Order ID {$orderId} status updated to 'dibatalkan'");
+        } else {
+            // Log unknown status for debugging
+            Log::warning("Unknown transaction status for Order ID {$orderId}: {$transactionStatus}");
         }
 
         return $order;

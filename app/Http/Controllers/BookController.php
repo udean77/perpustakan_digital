@@ -11,7 +11,7 @@ class BookController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Book::query();
+        $query = Book::with('store');
         $categories = [
             (object)['id' => 'fiksi', 'name' => 'Fiksi'],
             (object)['id' => 'non-fiksi', 'name' => 'Non-Fiksi'],

@@ -39,24 +39,7 @@
     </table>
 
     <div class="text-end">
-        @php
-            $subtotal = $order->items->sum(function($item) {
-                return $item->price * $item->quantity;
-            });
-        @endphp
-        
-        <h6 class="text-muted">Subtotal: Rp {{ number_format($subtotal, 0, ',', '.') }}</h6>
-        <h6 class="text-info">Ongkos Kirim: Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</h6>
-        
-        @if($order->discount_amount > 0)
-            <h6 class="text-success">Diskon: -Rp {{ number_format($order->discount_amount, 0, ',', '.') }}
-                @if($order->redeemCode)
-                    <span class="badge" style="background-color: #1A592D; color: white;">{{ $order->redeemCode->code }}</span>
-                @endif
-            </h6>
-        @endif
-        <hr>
-        <h5 class="fw-bold">Total: Rp {{ number_format($order->total_amount, 0, ',', '.') }}</h5>
+        <h5>Total: Rp {{ number_format($order->total_amount, 0, ',', '.') }}</h5>
     </div>
 
     <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary mt-3">Kembali ke Daftar</a>
