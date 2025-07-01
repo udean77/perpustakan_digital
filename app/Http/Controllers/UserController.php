@@ -21,9 +21,9 @@ class UserController extends Controller
     {
         $books = Book::with('store')
             ->where('status', 'active')
-            ->latest()
-            ->take(20)
-            ->get();
+        ->latest()
+        ->take(20)
+        ->get();
 
         // Get recommendations for authenticated users only
         $recommendations = collect();

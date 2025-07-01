@@ -7,8 +7,11 @@
     <div class="row">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h4>Detail Pesanan #{{ $order->id }}</h4>
+                    <a href="{{ route('user.cart.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Kembali ke Keranjang
+                    </a>
                 </div>
                 <div class="card-body">
                     {{-- Debug info --}}
@@ -25,17 +28,17 @@
                     @endif
                     
                     @if($order->items->count() > 0)
-                        @foreach ($order->items as $item)
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div>
+                    @foreach ($order->items as $item)
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
                                     <strong>{{ $item->book->title ?? 'No Title' }}</strong> <br>
-                                    <small class="text-muted">Jumlah: {{ $item->quantity }} x Rp{{ number_format($item->price, 0, ',', '.') }}</small>
-                                </div>
-                                <div>
-                                    Rp{{ number_format($item->price * $item->quantity, 0, ',', '.') }}
-                                </div>
+                                <small class="text-muted">Jumlah: {{ $item->quantity }} x Rp{{ number_format($item->price, 0, ',', '.') }}</small>
                             </div>
-                        @endforeach
+                            <div>
+                                Rp{{ number_format($item->price * $item->quantity, 0, ',', '.') }}
+                            </div>
+                        </div>
+                    @endforeach
                     @else
                         <div class="alert alert-warning">
                             <strong>Tidak ada item dalam pesanan ini!</strong><br>
@@ -233,7 +236,7 @@
                         @if($allEbooks)
                             <i class="bi bi-credit-card"></i> Bayar & Download Ebook
                         @else
-                            <i class="bi bi-credit-card"></i> Pilih Pengiriman Dulu
+                        <i class="bi bi-credit-card"></i> Pilih Pengiriman Dulu
                         @endif
                     </button>
                     
@@ -267,7 +270,7 @@ $(document).ready(function() {
     @if($allEbooks)
         $('#pay-button').prop('disabled', false).html('<i class="bi bi-credit-card"></i> Bayar & Download Ebook');
     @else
-        $('#pay-button').prop('disabled', false).html('<i class="bi bi-credit-card"></i> Bayar Sekarang');
+    $('#pay-button').prop('disabled', false).html('<i class="bi bi-credit-card"></i> Bayar Sekarang');
     @endif
 
     // Redeem code functionality
@@ -278,7 +281,7 @@ $(document).ready(function() {
     const finalTotalEl = document.getElementById('final-total-amount');
     const totalAmountDisplay = document.getElementById('total-amount-display');
     
-    let originalTotal = {{ $order->total_amount }};
+    let originalTotal = {{ $subtotal + $order->shipping_cost }};
     let appliedCode = null;
     let redeemDiscount = 0;
     let existingDiscount = {{ $order->discount_amount ?? 0 }};
@@ -300,7 +303,7 @@ $(document).ready(function() {
     function updateFinalTotal() {
         const newTotal = originalTotal - redeemDiscount;
         finalTotalEl.textContent = `Rp ${number_format(newTotal)}`;
-        totalAmountDisplay.textContent = `Rp${number_format(newTotal)}`;
+        totalAmountDisplay.textContent = `Rp ${number_format(newTotal)}`;
     }
 
     // Initialize final total display
@@ -352,38 +355,75 @@ $(document).ready(function() {
 <script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
 
 <script>
-document.getElementById('pay-button').addEventListener('click', function() {
-    // Disable button to prevent double click
-    this.disabled = true;
-    this.innerHTML = '<i class="bi bi-hourglass-split"></i> Memproses...';
-    
-    snap.pay('{{ $snapToken }}', {
-        onSuccess: function(result) {
-            console.log('Payment success:', result);
-            // Handle success - redirect to transaction history
-            window.location.href = '{{ route("user.transaction.index") }}?success=true&order_id=' + result.order_id;
-        },
-        onPending: function(result) {
-            console.log('Payment pending:', result);
-            // Handle pending
-            window.location.href = '{{ route("user.transaction.index") }}?pending=true&order_id=' + result.order_id;
-        },
-        onError: function(result) {
-            console.log('Payment error:', result);
-            // Handle error
-            window.location.href = '{{ route("user.transaction.index") }}?error=true&order_id=' + result.order_id;
-        },
-        onClose: function() {
-            console.log('Payment popup closed');
-            // Handle customer closed the popup without finishing payment
-            document.getElementById('pay-button').disabled = false;
-            @if($allEbooks)
-                document.getElementById('pay-button').innerHTML = '<i class="bi bi-credit-card"></i> Bayar & Download Ebook';
-            @else
-                document.getElementById('pay-button').innerHTML = '<i class="bi bi-credit-card"></i> Bayar Sekarang';
-            @endif
+document.addEventListener('DOMContentLoaded', function () {
+    const applyBtn = document.getElementById('apply-redeem-code');
+    const codeInput = document.getElementById('redeem-code-input');
+    const feedbackDiv = document.getElementById('redeem-code-feedback');
+    const orderId = '{{ $order->id }}';
+
+    applyBtn.addEventListener('click', function() {
+        const code = codeInput.value.trim();
+        if (!code) {
+            feedbackDiv.innerHTML = '<span class="text-danger">Silakan masukkan kode voucher.</span>';
+            return;
         }
+
+        applyBtn.disabled = true;
+        feedbackDiv.innerHTML = '<span class="text-info">Menerapkan voucher...</span>';
+
+        fetch(`{{ route("orders.apply_voucher", ["order" => $order->id]) }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ code: code })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                feedbackDiv.innerHTML = `<span class="text-success">${data.message}</span>`;
+                // Reload the page to update all details including the payment token
+                window.location.reload();
+            } else {
+                feedbackDiv.innerHTML = `<span class="text-danger">${data.message || 'Gagal menerapkan voucher.'}</span>`;
+                applyBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            feedbackDiv.innerHTML = '<span class="text-danger">Terjadi kesalahan. Silakan coba lagi.</span>';
+            applyBtn.disabled = false;
+        });
     });
+
+    const payButton = document.getElementById('pay-button');
+    @if(isset($snapToken))
+        payButton.disabled = false;
+        payButton.innerHTML = '<i class="bi bi-credit-card"></i> Bayar Sekarang';
+        payButton.addEventListener('click', function () {
+            snap.pay('{{ $snapToken }}', {
+                onSuccess: function(result){
+                    console.log('Payment success:', result);
+                    window.location.href = '{{ route("user.transaction.show", $order->id) }}';
+                },
+                onPending: function(result){
+                    console.log('Payment pending:', result);
+                    window.location.href = '{{ route("user.transaction.show", $order->id) }}';
+                },
+                onError: function(result){
+                    console.error('Payment error:', result);
+                    alert('Pembayaran gagal. Silakan coba lagi.');
+                },
+                onClose: function(){
+                    console.log('Payment popup closed');
+                }
+            });
+        });
+    @else
+        payButton.textContent = 'Gagal memuat pembayaran';
+    @endif
 });
 </script>
 @endsection 

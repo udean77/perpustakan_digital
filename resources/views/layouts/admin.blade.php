@@ -37,7 +37,7 @@
     <!-- ============================================================== -->
     <!-- Main wrapper - style you can find in pages.scss -->
     <!-- ============================================================== -->
-    <div id="main-wrapper">
+    <div id="main-wrapper" data-layout="vertical" data-navbarbg="skin5" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed" data-boxed-layout="full">
         <!-- ============================================================== -->
         <!-- Topbar header - style you can find in pages.scss -->
         <!-- ============================================================== -->
@@ -192,6 +192,20 @@
                     </a>
                 </li>
 
+                <!-- 🎫 Manajemen Kode Redeem -->
+                <li class="sidebar-item">
+                    <a href="{{ route('admin.redeem_code.index') }}" class="sidebar-link waves-effect waves-dark">
+                        <i class="mdi mdi-ticket-percent"></i><span class="hide-menu">Manajemen Redeem Code</span>
+                    </a>
+                </li>
+
+                <!-- 🎁 Manajemen Promosi -->
+                <li class="sidebar-item">
+                    <a href="{{ route('admin.promotions.index') }}" class="sidebar-link waves-effect waves-dark">
+                        <i class="mdi mdi-gift"></i><span class="hide-menu">Manajemen Promosi</span>
+                    </a>
+                </li>
+
             </ul>
         </nav>
         <!-- End Sidebar navigation -->
@@ -272,11 +286,11 @@
     <!-- ============================================================== -->
     <script src="{{asset('backend/libs/jquery/dist/jquery.min.js') }}"></script>
     <!-- Bootstrap tether Core JavaScript -->
-    <script src="{{ asset('backend/libs/popper.js/dist/popper.min.js') }}"></script>
+    <script src="{{ asset('backend/libs/popper.js/dist/umd/popper.min.js') }}"></script>
     <script src="{{ asset('backend/libs/bootstrap/dist/js/bootstrap.min.js') }}"></script>
     <!-- slimscrollbar scrollbar JavaScript -->
     <script src="{{ asset('backend/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js') }}"></script>
-    <script src="{{ asset('backend/extra-libs/sparkline/sparkline.js') }} "></script>
+    <script src="{{ asset('backend/extra-libs/sparkline/sparkline.js') }}"></script>
     <!--Wave Effects -->
     <script src="{{ asset('backend/dist/js/waves.js') }}"></script>
     <!--Menu sidebar -->
@@ -293,6 +307,7 @@
          ****************************************/
         $('#zero_config').DataTable();
     </script>
+    @stack('scripts')
     <form id="keluar-app" action="{{ route('logout') }}" method="post" class="d-none">
         @csrf
     </form>

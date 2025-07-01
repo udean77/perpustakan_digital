@@ -64,7 +64,7 @@ class CheckoutController extends Controller
         \DB::beginTransaction();
         try {
             $total = $cartItems->sum(fn($item) => ($item->book->discount_price ?? $item->book->price) * $item->quantity);
-            $cartCount = $cartItems->count();
+        $cartCount = $cartItems->count();
             
             // Handle address for ebooks vs physical books
             $addressId = null;
@@ -114,6 +114,12 @@ class CheckoutController extends Controller
                     'status' => 'pending',
                 ]);
                 
+                // Kurangi stok buku
+                $book = $item->book;
+                if ($book) {
+                    $book->decrement('stock', $item->quantity);
+                }
+
                 \Log::info('Order item created', [
                     'order_item_id' => $orderItem->id,
                     'book_id' => $item->book->id,
@@ -122,9 +128,9 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            // Hapus item dari cart
-            Cart::whereIn('id', $selectedItemIds)->delete();
-            \Log::info('Cart items removed', ['removed_ids' => $selectedItemIds]);
+            // Hapus item dari cart setelah pembayaran berhasil
+            // Cart::whereIn('id', $selectedItemIds)->delete();
+            // \Log::info('Cart items removed', ['removed_ids' => $selectedItemIds]);
 
             \DB::commit();
             \Log::info('Transaction committed successfully');
@@ -203,21 +209,25 @@ class CheckoutController extends Controller
 
             $redeemCode = null;
             $discountAmount = 0;
+            $shippingCost = $request->shipping_cost;
 
             if ($request->filled('redeem_code')) {
                 $code = RedeemCode::where('code', strtoupper($request->redeem_code))->first();
 
                 if ($code && $code->canBeUsedFor($subtotal)) {
                     $redeemCode = $code;
-                    $discountAmount = $redeemCode->calculateDiscount($subtotal);
+                    
+                    if ($redeemCode->type === 'free_shipping') {
+                        $discountAmount = $shippingCost; // Diskon sebesar ongkir
+                        $shippingCost = 0; // Ongkir jadi 0
+                    } else {
+                        $discountAmount = $redeemCode->calculateDiscount($subtotal);
+                    }
                 } else {
                     DB::rollBack();
                     return back()->with('error', 'Kode redeem tidak valid atau tidak dapat digunakan.');
                 }
             }
-
-            // Gunakan shipping cost dari form
-            $shippingCost = $request->shipping_cost;
 
             $totalAmount = $subtotal - $discountAmount + $shippingCost;
 
@@ -232,7 +242,7 @@ class CheckoutController extends Controller
                 'user_id' => $user->id,
                 'address_id' => $selectedAddress->id,
                 'total_amount' => $totalAmount,
-                'shipping_cost' => $shippingCost,
+                'shipping_cost' => $request->shipping_cost, // Simpan ongkir asli
                 'payment_method' => 'midtrans',
                 'shipping_address' => $request->shipping_address,
                 'status' => 'pending',
@@ -266,13 +276,11 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            // Hapus hanya item yang dicheckout dari keranjang
-            Cart::where('user_id', $userId)
-                ->whereIn('id', $selectedItemIds)
-                ->delete();
+            // Jangan hapus dari keranjang dulu
+            // Cart::whereIn('id', $selectedItemIds)->where('user_id', $userId)->delete();
 
             DB::commit();
-            return redirect()->route('payment.create', $order->id)->with('success', 'Checkout berhasil diproses. Silakan lakukan pembayaran.');
+            return redirect()->route('payment.create', $order->id)->with('success', 'Silakan lanjutkan ke pembayaran.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan saat checkout: ' . $e->getMessage());
@@ -300,13 +308,13 @@ class CheckoutController extends Controller
                 'shipping_cost' => 'required|numeric|min:0|max:0' // Ebook tidak ada ongkir
             ]);
         } else {
-            $request->validate([
-                'book_id' => 'required|exists:books,id',
-                'quantity' => 'required|integer|min:1',
-                'shipping_address' => 'required|string',
-                'redeem_code' => 'nullable|string',
-                'shipping_cost' => 'required|numeric|min:10000|max:30000'
-            ]);
+        $request->validate([
+            'book_id' => 'required|exists:books,id',
+            'quantity' => 'required|integer|min:1',
+            'shipping_address' => 'required|string',
+            'redeem_code' => 'nullable|string',
+            'shipping_cost' => 'required|numeric|min:10000|max:30000'
+        ]);
         }
 
         DB::beginTransaction();
@@ -345,10 +353,10 @@ class CheckoutController extends Controller
             $shippingAddress = '';
             
             if ($book->book_type === 'physical') {
-                $selectedAddress = $user->addresses()->where('is_default', true)->first();
-                if (!$selectedAddress) {
-                    DB::rollBack();
-                    return back()->with('error', 'Alamat default belum disetel.');
+            $selectedAddress = $user->addresses()->where('is_default', true)->first();
+            if (!$selectedAddress) {
+                DB::rollBack();
+                return back()->with('error', 'Alamat default belum disetel.');
                 }
                 $shippingAddress = $request->shipping_address;
             }

@@ -7,6 +7,7 @@ use Midtrans\Snap;
 use App\Models\Order;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class MidtransService
 {
@@ -26,7 +27,7 @@ class MidtransService
     {
         $itemDetails = $this->getItemDetails($order);
         
-        // Calculate total from item details for validation
+        // Calculate total from item details for validation and for gross_amount
         $calculatedTotal = 0;
         foreach ($itemDetails as $item) {
             $calculatedTotal += $item['price'] * $item['quantity'];
@@ -44,19 +45,19 @@ class MidtransService
         
         // Validate that calculated total matches order total
         if (abs($calculatedTotal - $order->total_amount) > 0.01) {
-            Log::error('Total mismatch in Midtrans payment', [
+            Log::warning('Total mismatch in Midtrans payment', [
                 'order_id' => $order->id,
                 'order_total' => $order->total_amount,
                 'calculated_total' => $calculatedTotal,
                 'difference' => $calculatedTotal - $order->total_amount
             ]);
-            throw new \Exception('Total amount mismatch. Order total: ' . $order->total_amount . ', Calculated total: ' . $calculatedTotal);
+            // Tidak perlu throw error, cukup log warning
         }
 
         $params = [
             'transaction_details' => [
                 'order_id' => 'ORDER-' . $order->id . '-' . time(),
-                'gross_amount' => $order->total_amount,
+                'gross_amount' => $calculatedTotal, // HARUS SAMA DENGAN JUMLAH ITEM
             ],
             'customer_details' => [
                 'first_name' => $order->user->nama,
@@ -166,14 +167,49 @@ class MidtransService
         Log::info("Transaction status for Order ID {$orderId}: {$transactionStatus}");
 
         if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
-            $order->update(['status' => 'selesai', 'payment_method' => $paymentType]);
-            Log::info("Order ID {$orderId} status updated to 'selesai' with payment method '{$paymentType}'");
+            if ($order->status !== 'selesai') {
+                DB::transaction(function () use ($order, $orderId, $paymentType) {
+                    $order->update(['status' => 'selesai', 'payment_method' => $paymentType]);
+                    Log::info("Order ID {$orderId} status updated to 'selesai' with payment method '{$paymentType}'");
+
+                    // Ambil ID buku dari item pesanan
+                    $bookIds = $order->items->pluck('book_id')->toArray();
+
+                    // Hapus item dari keranjang pengguna
+                    if (!empty($bookIds)) {
+                        \App\Models\Cart::where('user_id', $order->user_id)
+                            ->whereIn('book_id', $bookIds)
+                            ->delete();
+                        Log::info("Cart items removed for user ID {$order->user_id}", [
+                            'book_ids' => $bookIds
+                        ]);
+                    }
+
+                    // Stok sudah dikurangi saat checkout, jadi tidak perlu lagi di sini
+                });
+
+            } else {
+                Log::info("Order ID {$orderId} already marked as 'selesai'. No action taken.");
+            }
         } elseif ($transactionStatus == 'pending') {
             $order->update(['status' => 'pending', 'payment_method' => $paymentType]);
             Log::info("Order ID {$orderId} status updated to 'pending' with payment method '{$paymentType}'");
         } elseif ($transactionStatus == 'cancel' || $transactionStatus == 'expire' || $transactionStatus == 'deny') {
-            $order->update(['status' => 'dibatalkan', 'payment_method' => $paymentType]);
-            Log::info("Order ID {$orderId} status updated to 'dibatalkan'");
+            if ($order->status !== 'dibatalkan' && $order->status !== 'selesai') {
+                $order->update(['status' => 'dibatalkan', 'payment_method' => $paymentType]);
+                Log::info("Order ID {$orderId} status updated to 'dibatalkan'");
+
+                // Kembalikan stok karena pesanan dibatalkan/gagal
+                foreach ($order->items as $item) {
+                    if ($item->book) {
+                        $item->book->increment('stock', $item->quantity);
+                        Log::info("Stock restored for book ID {$item->book->id}", [
+                            'order_id' => $orderId,
+                            'quantity' => $item->quantity
+                        ]);
+                    }
+                }
+            }
         } else {
             // Log unknown status for debugging
             Log::warning("Unknown transaction status for Order ID {$orderId}: {$transactionStatus}");

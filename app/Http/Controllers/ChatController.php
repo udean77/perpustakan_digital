@@ -20,8 +20,8 @@ class ChatController extends Controller
         set_time_limit(120);
         
         try {
-            $startTime = microtime(true);
-            $userMessage = $request->input('message');
+        $startTime = microtime(true);
+        $userMessage = $request->input('message');
             
             // Validate input
             if (empty($userMessage)) {
@@ -35,32 +35,32 @@ class ChatController extends Controller
             ]);
             
             // Enhanced context detection for database queries
-            $context = null;
-            $detectedIntent = null;
-            $queryType = null;
+        $context = null;
+        $detectedIntent = null;
+        $queryType = null;
 
-            // Track session
-            $sessionId = Session::get('chat_session_id', uniqid());
-            Session::put('chat_session_id', $sessionId);
+        // Track session
+        $sessionId = Session::get('chat_session_id', uniqid());
+        Session::put('chat_session_id', $sessionId);
 
             // Reset session for fresh conversation (optional - uncomment if you want each message to be independent)
             // Session::forget('chat_session_id');
             // $sessionId = uniqid();
             // Session::put('chat_session_id', $sessionId);
 
-            // Get or create analytics record
+        // Get or create analytics record
             try {
-                $analytics = ChatAnalytics::where('session_id', $sessionId)->first();
-                if (!$analytics) {
-                    $analytics = ChatAnalytics::create([
-                        'user_id' => auth()->id(),
-                        'session_id' => $sessionId,
-                        'started_at' => now(),
-                        'user_agent' => $request->header('User-Agent'),
-                        'ip_address' => $request->ip(),
-                        'message_count' => 0
-                    ]);
-                }
+        $analytics = ChatAnalytics::where('session_id', $sessionId)->first();
+        if (!$analytics) {
+            $analytics = ChatAnalytics::create([
+                'user_id' => auth()->id(),
+                'session_id' => $sessionId,
+                'started_at' => now(),
+                'user_agent' => $request->header('User-Agent'),
+                'ip_address' => $request->ip(),
+                'message_count' => 0
+            ]);
+        }
             } catch (\Exception $e) {
                 Log::warning('Failed to create analytics record: ' . $e->getMessage());
                 // Continue without analytics
@@ -83,7 +83,7 @@ class ChatController extends Controller
                         })->join("\n\n");
                         
                         $context = "BUKU YANG TERSEDIA DI DATABASE:\n\n" . $bookList;
-                        $detectedIntent = 'book_search';
+                $detectedIntent = 'book_search';
                     }
                 } catch (\Exception $e) {
                     Log::warning('Failed to search books: ' . $e->getMessage());
@@ -171,17 +171,17 @@ class ChatController extends Controller
             if (stripos($userMessage, 'redeem') !== false || stripos($userMessage, 'kode') !== false || stripos($userMessage, 'voucher') !== false || stripos($userMessage, 'diskon') !== false || stripos($userMessage, 'promo') !== false) {
                 try {
                     $redeemCodes = RedeemCode::where('status', 'active')
-                                            ->where('expired_at', '>', now())
-                                            ->where('usage_limit', '>', 'used_count')
-                                            ->limit(3)
-                                            ->get(['code', 'discount_amount', 'discount_type', 'min_purchase', 'expired_at', 'usage_limit', 'used_count']);
+                        ->where('valid_until', '>', now())
+                        ->whereColumn('max_usage', '>', 'used_count')
+                        ->limit(3)
+                        ->get(['code', 'value', 'value_type', 'min_purchase', 'valid_until', 'max_usage', 'used_count']);
                     
                     if ($redeemCodes->count() > 0) {
                         $codeList = $redeemCodes->map(function($code) {
-                            $remainingUses = $code->usage_limit - $code->used_count;
-                            $discountText = $code->discount_type === 'percentage' ? "{$code->discount_amount}%" : "Rp" . number_format($code->discount_amount);
-                            $minPurchaseText = $code->min_purchase > 0 ? "Min. pembelian: Rp" . number_format($code->min_purchase) : "Tidak ada minimum pembelian";
-                            $expiredDate = $code->expired_at->format('d/m/Y H:i');
+                            $remainingUses = $code->max_usage - $code->used_count;
+                            $discountText = $code->value_type === 'percentage' ? $code->value . '%' : 'Rp' . number_format($code->value);
+                            $minPurchaseText = $code->min_purchase > 0 ? 'Min. pembelian: Rp' . number_format($code->min_purchase) : 'Tidak ada minimum pembelian';
+                            $expiredDate = \Carbon\Carbon::parse($code->valid_until)->format('d/m/Y');
                             
                             return "{$code->code}\n   Diskon: {$discountText}\n   {$minPurchaseText}\n   Berlaku sampai: {$expiredDate}\n   Sisa penggunaan: {$remainingUses}";
                         })->join("\n\n");
@@ -197,33 +197,49 @@ class ChatController extends Controller
                 }
             }
             
+            // Deteksi intent cek status pesanan
+            if (preg_match('/status pesanan.*#?(\\d+)/i', $userMessage, $matches)) {
+                $orderId = $matches[1];
+                $order = \App\Models\Order::where('id', $orderId)
+                    ->where('user_id', auth()->id())
+                    ->first();
+
+                if ($order) {
+                    $context = "STATUS PESANAN:\nNomor: #{$order->id}\nStatus: {$order->status}\nTotal: Rp" . number_format($order->total) . "\nTanggal: {$order->created_at->format('d/m/Y')}";
+                    $detectedIntent = 'order_status';
+                } else {
+                    $context = "Maaf, pesanan dengan nomor #{$orderId} tidak ditemukan di akun Anda.";
+                    $detectedIntent = 'order_status_not_found';
+                }
+            }
+            
             // Send to LLMService
             Log::info('Sending to LLMService', ['context_length' => strlen($context ?? '')]);
-            $response = $llm->ask($userMessage, $context);
-            
-            // Calculate response time
-            $responseTime = round((microtime(true) - $startTime) * 1000);
-            
-            // Update analytics
+        $response = $llm->ask($userMessage, $context);
+        
+        // Calculate response time
+        $responseTime = round((microtime(true) - $startTime) * 1000);
+        
+        // Update analytics
             try {
                 if (isset($analytics)) {
-                    $analytics->update([
-                        'intent_type' => $detectedIntent,
-                        'query_type' => $queryType,
-                        'response_time_ms' => $responseTime,
-                        'message_count' => $analytics->message_count + 1
-                    ]);
+        $analytics->update([
+            'intent_type' => $detectedIntent,
+            'query_type' => $queryType,
+            'response_time_ms' => $responseTime,
+            'message_count' => $analytics->message_count + 1
+        ]);
                 }
             } catch (\Exception $e) {
                 Log::warning('Failed to update analytics: ' . $e->getMessage());
             }
-            
-            // Save chat history
+        
+        // Save chat history
             try {
-                ChatHistory::create([
-                    'user_id' => auth()->id(),
-                    'message' => $userMessage,
-                    'intent' => $detectedIntent,
+        ChatHistory::create([
+            'user_id' => auth()->id(),
+            'message' => $userMessage,
+            'intent' => $detectedIntent,
                 ]);
             } catch (\Exception $e) {
                 Log::warning('Failed to save chat history: ' . $e->getMessage());

@@ -11,7 +11,7 @@ class CreateOrdersTable extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Pembeli
-             $table->foreignId('address_id')->nullable()->constrained('addresses')->onDelete('set null');
+            $table->foreignId('address_id')->nullable()->constrained('addresses')->onDelete('set null');
             $table->string('status')->default('pending');  // Status global order (pending, paid, shipped, completed, cancelled)
             $table->decimal('total_amount', 10, 2);  // Total seluruh pesanan
             $table->string('payment_method');

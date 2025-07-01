@@ -5,6 +5,7 @@ body {
     background-attachment: fixed;
     margin: 0;
     padding: 0;
+    padding-top: 72px; /* Add padding for fixed navbar */
 }
 
     /* Hilangkan scroll horizontal dari body */

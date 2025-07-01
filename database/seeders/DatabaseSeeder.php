@@ -32,9 +32,9 @@ class DatabaseSeeder extends Seeder
        
         $this->call([
             RedeemCodeSeeder::class,
-            TestDataSeeder::class,
-            StoreSeeder::class,
-            BookSeeder::class,
+            //TestDataSeeder::class,
+            //StoreSeeder::class,
+            //BookSeeder::class,
         ]);
     }
 }

@@ -61,8 +61,12 @@ class RedeemCode extends Model
     /**
      * Calculate discount amount
      */
-    public function calculateDiscount($subtotal)
+    public function calculateDiscount($subtotal, $shippingCost = 0)
     {
+        if ($this->type === 'free_shipping') {
+            return $shippingCost;
+        }
+        
         if ($this->value_type === 'percentage') {
             return ($subtotal * $this->value) / 100;
         }

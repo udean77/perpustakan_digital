@@ -110,6 +110,7 @@ Route::middleware(['auth'])->group(function () {
     // Order
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('user.orders.show');
     Route::patch('user/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('user.orders.cancel');
+    Route::post('orders/{order}/apply-voucher', [OrderController::class, 'applyVoucher'])->name('orders.apply_voucher');
 
     Route::get('reports', [ReportController::class, 'index'])->name('user.reports.index');
     Route::get('/reports/create', [ReportController::class, 'create'])->name('user.reports.create');
@@ -145,6 +146,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('server-stats', [AdminDashboardController::class, 'getServerStats'])->name('admin.server-stats');
 
     // Resource route untuk manajemen pengguna
     Route::resource('/users', AdminUserController::class)->names('admin.users');
@@ -175,6 +177,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('/redeem_code', AdminRedeemCodeController::class)->names('admin.redeem_code');
     Route::post('/redeem_code/{redeemCode}/toggle-status', [AdminRedeemCodeController::class, 'toggleStatus'])->name('admin.redeem_code.toggleStatus');
     Route::post('/redeem_code/generate-multiple', [AdminRedeemCodeController::class, 'generateMultiple'])->name('admin.redeem_code.generateMultiple');
+
+    // Promotions
+    Route::resource('/promotions', \App\Http\Controllers\Admin\PromotionController::class)->names('admin.promotions');
 
     Route::get('/transaction', [AdminTransactionController::class, 'index'])->name('admin.transaction.index');
     Route::get('transactions/{id}', [AdminTransactionController::class, 'show'])->name('admin.transaction.show');

@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set initial value to 1 if empty
         if (!quantityInput.value) {
             quantityInput.value = 1;
-        }
+}
     }
 });
 
