@@ -28,20 +28,17 @@
             <div class="p-4 p-lg-5 bg-light rounded-3 text-center shadow-sm">
                 <div id="promoCarousel" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-inner">
-                        <div class="carousel-item active text-center p-5">
+                        <div class="carousel-item active text-center p-5" style="background: url('{{ asset('images/bg-img1.jpg') }}') center center/cover no-repeat;">
                             <h1><strong>Selamat Datang di Pustaka Digital!</strong></h1>
                             <p>Temukan koleksi buku terbaru, diskon spesial, dan promo menarik setiap hari.<br>Belanja buku jadi lebih mudah dan menyenangkan!</p>
-                            <a href="#" class="btn btn-primary mt-3">Lihat Promo Sekarang</a>
                         </div>
-                        <div class="carousel-item text-center p-5">
+                        <div class="carousel-item text-center p-5" style="background: url('{{ asset('images/bg-img2.jpg') }}') center center/cover no-repeat;">
                             <h1><strong>Diskon Hingga 70%!</strong></h1>
                             <p>Jangan lewatkan penawaran spesial minggu ini.</p>
-                            <a href="#" class="btn btn-danger mt-3">Cek Promo</a>
                         </div>
-                        <div class="carousel-item text-center p-5">
-                            <h1><strong>Gratis Ongkir!</strong></h1>
-                            <p>Untuk setiap pembelian minimal Rp150.000</p>
-                            <a href="#" class="btn btn-success mt-3">Belanja Sekarang</a>
+                        <div class="carousel-item text-center p-5" style="background: url('{{ asset('images/bg-img3.jpg') }}') center center/cover no-repeat;">
+                            <h1><strong>Tersedia voucher sampai 50%</strong></h1>
+                            <p>Silahkan tanya ai assistant untuk mendapatkan voucher</p>
                         </div>
                     </div>
                 </div>
