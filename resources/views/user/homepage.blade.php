@@ -25,20 +25,29 @@
     <!-- Header Section -->
     <header class="py-5">
         <div class="container px-lg-5">
-            <div class="p-4 p-lg-5 bg-light rounded-3 text-center shadow-sm">
+            <div class="p-0 text-center">
                 <div id="promoCarousel" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-inner">
-                        <div class="carousel-item active text-center p-5" style="background: url('{{ asset('images/bg-img1.jpg') }}') center center/cover no-repeat;">
-                            <h1><strong>Selamat Datang di Pustaka Digital!</strong></h1>
-                            <p>Temukan koleksi buku terbaru, diskon spesial, dan promo menarik setiap hari.<br>Belanja buku jadi lebih mudah dan menyenangkan!</p>
+                        <div class="carousel-item active">
+                            <img src="{{ asset('images/bg-img1.jpg') }}" alt="Promo 1" class="carousel-image d-block w-100">
+                            <div class="carousel-caption">
+                                <h1><strong>Selamat Datang di Pustaka Digital!</strong></h1>
+                                <p>Temukan koleksi buku terbaru, diskon spesial, dan promo menarik setiap hari.<br>Belanja buku jadi lebih mudah dan menyenangkan!</p>
+                            </div>
                         </div>
-                        <div class="carousel-item text-center p-5" style="background: url('{{ asset('images/bg-img2.jpg') }}') center center/cover no-repeat;">
-                            <h1><strong>Diskon Hingga 70%!</strong></h1>
-                            <p>Jangan lewatkan penawaran spesial minggu ini.</p>
+                        <div class="carousel-item">
+                            <img src="{{ asset('images/bg-img2.jpg') }}" alt="Promo 2" class="carousel-image d-block w-100">
+                            <div class="carousel-caption">
+                                <h1><strong>Diskon Hingga 70%!</strong></h1>
+                                <p>Jangan lewatkan penawaran spesial minggu ini.</p>
+                            </div>
                         </div>
-                        <div class="carousel-item text-center p-5" style="background: url('{{ asset('images/bg-img3.jpg') }}') center center/cover no-repeat;">
-                            <h1><strong>Tersedia voucher sampai 50%</strong></h1>
-                            <p>Silahkan tanya ai assistant untuk mendapatkan voucher</p>
+                        <div class="carousel-item">
+                            <img src="{{ asset('images/bg-img3.jpg') }}" alt="Promo 3" class="carousel-image d-block w-100">
+                            <div class="carousel-caption">
+                                <h1><strong>Tersedia voucher sampai 50%</strong></h1>
+                                <p>Silahkan tanya ai assistant untuk mendapatkan voucher</p>
+                            </div>
                         </div>
                     </div>
                 </div>
